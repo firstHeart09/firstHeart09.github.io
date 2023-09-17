@@ -1,0 +1,348 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ld链接脚本学习 | 慵懒的猫的博客😽~~~</title><meta name="author" content="codemonkey"><meta name="copyright" content="codemonkey"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ld链接脚本学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ld链接脚本学习">
+<meta property="og:url" content="https://firstheart09.github.io/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="慵懒的猫的博客😽~~~">
+<meta property="og:description" content="ld链接脚本学习">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg">
+<meta property="article:published_time" content="2023-09-17T08:44:03.865Z">
+<meta property="article:modified_time" content="2023-09-17T08:44:03.865Z">
+<meta property="article:author" content="codemonkey">
+<meta property="article:tag" content="ld链接脚本">
+<meta property="article:tag" content="链接">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg"><link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/cat2.jpg"><link rel="canonical" href="https://firstheart09.github.io/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":30,"position":"top","messagePrev":"该文章创建于","messageNext":"天前，文章部分内容可能已经过期，请以最新的文章为主"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: codemonkey","link":"链接: ","source":"来源: 慵懒的猫的博客😽~~~","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ld链接脚本学习',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-09-17 16:44:03'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/cartoon2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page group hide" href="javascript:void(0);"><i class="fa-fw fa-solid fa-bars-progress"></i><span> 管理</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="慵懒的猫的博客😽~~~"><img class="site-icon" src="/pic/cat1.jpg"/><span class="site-name">慵懒的猫的博客😽~~~</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page group hide" href="javascript:void(0);"><i class="fa-fw fa-solid fa-bars-progress"></i><span> 管理</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ld链接脚本学习</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-09-17T08:44:03.865Z" title="更新于 2023-09-17 16:44:03">2023-09-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC/">ld链接脚本</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ld链接脚本学习"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="第一章-链接脚本介绍"><a href="#第一章-链接脚本介绍" class="headerlink" title="第一章 链接脚本介绍"></a>第一章 链接脚本介绍</h1><h2 id="1-什么是链接脚本"><a href="#1-什么是链接脚本" class="headerlink" title="1. 什么是链接脚本"></a>1. 什么是链接脚本</h2><p>在我们使用<code>gcc</code>命令将一个一个输入文件变为目标文件<code>.o</code>的时候，当前文件是不能再内存中运行的，需要进行链接，由操作系统分配程序入口地址，经过重定位、符号解析等操作才能够运行。而链接脚本就是在链接过程中起着决定性作用。可以这么说，<strong>链接脚本是链接的指向灯。链接脚本说你该怎么链接，链接就会按照链接脚本所说的话去做</strong></p>
+<h2 id="2-链接脚本的后缀名及其相关说明"><a href="#2-链接脚本的后缀名及其相关说明" class="headerlink" title="2. 链接脚本的后缀名及其相关说明"></a>2. 链接脚本的后缀名及其相关说明</h2><p>在linux中，链接脚本后缀名为<code>.lds</code>，本质上是文本文件。<br>链接脚本控制每次链接的进行，使用链接命令语言编写。链接脚本最主要的目的是：描述如何将输入文件中的各个<code>sections</code>映射到输出文件中，并控制输出文件的内存布局</p>
+<h1 id="第二章-链接脚本语法介绍"><a href="#第二章-链接脚本语法介绍" class="headerlink" title="第二章  链接脚本语法介绍"></a>第二章  链接脚本语法介绍</h1><h2 id="1-基本语法介绍"><a href="#1-基本语法介绍" class="headerlink" title="1. 基本语法介绍"></a>1. 基本语法介绍</h2><ul>
+<li>写一个链接脚本相当于写一系列命令，每个命令后面跟着的要是就是参数的关键字，要不就是符号的赋值</li>
+<li><strong>命令可以用<code>;</code>隔开，空格一般情况下省略</strong></li>
+<li><strong>字符串，如文件或格式名称一般情况下可以直接加入</strong>。如果文件名包含类似于逗号等符号，为了避免文件名被分离。使用双引号，将<strong>文件名放到双引号</strong>中，<strong>注意不能再文件名中使用双引号</strong></li>
+<li>可以使用类似于C语言的注释符号 <code>/**/</code></li>
+</ul>
+<h2 id="2-详细介绍"><a href="#2-详细介绍" class="headerlink" title="2. 详细介绍"></a>2. 详细介绍</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ENTRY(symbol)</td>
+<td>设置入口点，即程序执行的第一条指令<br />链接器依次通过下述方法来进行设置，只要成功立即停止：<br />  <code> -e</code> 入口命令选项（<strong>译注</strong>：-e是链接器的参数）<br />  链接脚本中的<code>ENTRY (symbol) </code>命令<br />  如果符号<code>start</code>定义了，那就是<code>start</code>符号的值<br />  如果存在<code>.text</code>节，那就是<code>.text</code>节的第一个字节的地址<br />  地址0</td>
+</tr>
+<tr>
+<td>SECTIONS</td>
+<td>该命令告诉链接器如何将输入节映射成输出节以及输出节怎样放进内存<br />其格式为：<br />**SECTIONS<br />{<br />sections-command<br />sections-command<br />}<br />**其中<code>sections-command</code>可以由以下4项组成：<br />1.  <code>ENTRY</code>命令<br />2.   符号赋值语句<br />3.   一个输出节描述<br />4.   一个overlay描述</td>
+</tr>
+<tr>
+<td>INCLUDE filename</td>
+<td>在该位置包含名为<code>filename</code>的链接脚本</td>
+</tr>
+<tr>
+<td>INPUT (file， file， ….)</td>
+<td>链接器在链接过程中包含<code>file</code>名字的文件</td>
+</tr>
+<tr>
+<td>GROUP(file，file，…)</td>
+<td>类似于INPUT，不同的是命名的文件都应该是归档文件，并且它们会被重复搜索，直到没有新的未定义的引用被创建。</td>
+</tr>
+<tr>
+<td>OUTPUT(filename)</td>
+<td><strong>给输出文件命名为<code>filename</code></strong></td>
+</tr>
+<tr>
+<td>SEARCH_DIR (<em>path</em>)</td>
+<td>将路径<code>path</code>添加到’ ld ‘查找归档库的路径列表中</td>
+</tr>
+<tr>
+<td>STARTUP ( filename )</td>
+<td>就像’<code>INPUT </code>命令一样，除了<strong>文件名将成为第一个被链接的输入文件</strong>，就像它是在命令行上首先指定的一样。</td>
+</tr>
+<tr>
+<td>OUTPUT_FORMAT</td>
+<td>给输出文件指定BFD格式的名称</td>
+</tr>
+<tr>
+<td>PROVIDE( symbol &#x3D; expression )</td>
+<td>在目标文件内被引用，但没有在任何目标文件内被定义的符号</td>
+</tr>
+</tbody></table>
+<h3 id="2-1-输出节"><a href="#2-1-输出节" class="headerlink" title="2.1  输出节"></a>2.1  输出节</h3><h4 id="2-1-1-输出节描述"><a href="#2-1-1-输出节描述" class="headerlink" title="2.1.1 输出节描述"></a>2.1.1 输出节描述</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SECTION [ address ] [( type )] : [AT( LMA )]</span><br><span class="line">  &#123;</span><br><span class="line">       output-sections-command</span><br><span class="line">       output-sections-command</span><br><span class="line">...</span><br><span class="line">&#125; [&gt; region ] [: phdr : phdr ...] [=fillexp]</span><br></pre></td></tr></table></figure>
+
+<p>多数输出节不使用大部分可选的节属性。“SECTION”周围的空格是必需的，这样SECTION名是明确的。冒号和花括号也是必需的。换行符和其他空白是可选的。</p>
+<p>每个output-sections-command 命令可以是如下：</p>
+<ul>
+<li>一个符号赋值 </li>
+<li>一个输入节描述</li>
+<li>要直接包含的数据值</li>
+<li>一个特殊的输出部分关键字</li>
+</ul>
+<h4 id="2-1-2-输出节名称"><a href="#2-1-2-输出节名称" class="headerlink" title="2.1.2  输出节名称"></a>2.1.2  输出节名称</h4><p>输出节的名称是’ section ‘。’ section ‘必须满足输出格式的约束。在只支持有限数量的节的输出文件格式中，例如’ a.out ‘，名称必须是该格式支持的名称之一(例如’ a.out ‘，只允许’ .text ‘， ‘ .data ‘或’ .bss ‘)。如果输出格式支持任意数量的节，但是使用数字而不是名称(就像Oasys的情况一样)，则名称应该作为引用的数字字符串提供。section名称可以由任何字符序列组成，但是包含逗号等任何不寻常字符的名称必须用引号括起来。输出节名’ &#x2F;DISCARD&#x2F; ‘是特殊的（丢弃输入文件的节）</p>
+<h4 id="2-1-3-输出节地址"><a href="#2-1-3-输出节地址" class="headerlink" title="2.1.3  输出节地址"></a>2.1.3  输出节地址</h4><p>“address”是输出节的VMA(虚拟内存地址)的表达式。如果你没有提供’ address ‘，链接器将基于’ region ‘(如果存在)设置它，或者以其他方式基于位置计数器的当前值。</p>
+<p>如果你提供了’ address ‘，输出节的地址将被精确地设置为该规范。如果你既不提供’ address ‘也不提供’ region ‘，那么输出节的地址将被设置为符合输出节的对齐要求的位置计数器的当前值。</p>
+<p>输出节的对齐要求是输出节中包含的所有输入节中最严格的对齐方式。（<strong>译注</strong>：比如，一个输出节包括2个输入节，一个输入节是2字节对齐，一个输入节是4字节对齐，那么这个输出节就按照最严格的4字节对齐）</p>
+<h3 id="2-2-输入节"><a href="#2-2-输入节" class="headerlink" title="2.2  输入节"></a>2.2  输入节</h3><h4 id="2-2-1-输入节描述"><a href="#2-2-1-输入节描述" class="headerlink" title="2.2.1  输入节描述"></a>2.2.1  输入节描述</h4><h4 id="2-2-2-输入节基础"><a href="#2-2-2-输入节基础" class="headerlink" title="2.2.2  输入节基础"></a>2.2.2  输入节基础</h4><p>输入节描述由一个文件名(可选)和一个用圆括号括起来的节名称列表组成，文件名和节名可以是通配符模式。<br>如<code>*(.text)</code>表明所有输入文件中的<code>.text</code>段</p>
+<h4 id="2-2-3-输入节通配符模式"><a href="#2-2-3-输入节通配符模式" class="headerlink" title="2.2.3  输入节通配符模式"></a>2.2.3  输入节通配符模式</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">*  表示匹配任意数量的字符</span><br><span class="line">？ 表示匹配任意单个字符</span><br><span class="line">[chars]  表示匹配任何字符的单个实例，字符&#x27; - &#x27;可用于指定字符范围，如&#x27; [a-z] &#x27;以匹配任何小写字母</span><br><span class="line">\   表示引用后续字符</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-COMMON的输入节"><a href="#2-3-COMMON的输入节" class="headerlink" title="2.3 COMMON的输入节"></a>2.3 COMMON的输入节</h3><p>在大多数情况下，输入文件中的common符号将被放置在输出文件的’ .bss ‘节。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io">codemonkey</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/">https://firstheart09.github.io/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://firstheart09.github.io" target="_blank">慵懒的猫的博客😽~~~</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC/">ld链接脚本</a><a class="post-meta__tags" href="/tags/%E9%93%BE%E6%8E%A5/">链接</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/09/17/ld-map%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" title="ld之map文件学习"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">ld之map文件学习</div></div></a></div><div class="next-post pull-right"><a href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E6%B5%8B%E8%AF%95/" title="ld链接脚本测试"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309101044269.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ld链接脚本测试</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/09/17/ld-map%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" title="ld之map文件学习"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-17</div><div class="title">ld之map文件学习</div></div></a></div><div><a href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E6%B5%8B%E8%AF%95/" title="ld链接脚本测试"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309101044269.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-17</div><div class="title">ld链接脚本测试</div></div></a></div><div><a href="/2023/09/17/%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%AD%A6%E4%B9%A0/" title="静态链接"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309071532130.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-17</div><div class="title">静态链接</div></div></a></div><div><a href="/2023/09/17/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%AD%A6%E4%B9%A0/" title="elf文件格式学习"><img class="cover" src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/v2-e0ca937a1d3296e7463aa0aa096bef48_r.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-17</div><div class="title">elf文件格式学习</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81ODg2NC8zNTMyNg=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/cartoon2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">codemonkey</div><div class="author-info__description">猫的博客，欢迎访问！！！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:1274455304@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客，希望你能够喜欢我的文章。如有任何问题或者建议，可在Github Issue或者评论区留言</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">第一章 链接脚本介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC"><span class="toc-number">1.1.</span> <span class="toc-text">1. 什么是链接脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E7%9A%84%E5%90%8E%E7%BC%80%E5%90%8D%E5%8F%8A%E5%85%B6%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.</span> <span class="toc-text">2. 链接脚本的后缀名及其相关说明</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">第二章  链接脚本语法介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.1.</span> <span class="toc-text">1. 基本语法介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%AF%A6%E7%BB%86%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.2.</span> <span class="toc-text">2. 详细介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BE%93%E5%87%BA%E8%8A%82"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.1  输出节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-%E8%BE%93%E5%87%BA%E8%8A%82%E6%8F%8F%E8%BF%B0"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">2.1.1 输出节描述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-2-%E8%BE%93%E5%87%BA%E8%8A%82%E5%90%8D%E7%A7%B0"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">2.1.2  输出节名称</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-3-%E8%BE%93%E5%87%BA%E8%8A%82%E5%9C%B0%E5%9D%80"><span class="toc-number">2.2.1.3.</span> <span class="toc-text">2.1.3  输出节地址</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%BE%93%E5%85%A5%E8%8A%82"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2  输入节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-%E8%BE%93%E5%85%A5%E8%8A%82%E6%8F%8F%E8%BF%B0"><span class="toc-number">2.2.2.1.</span> <span class="toc-text">2.2.1  输入节描述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E8%BE%93%E5%85%A5%E8%8A%82%E5%9F%BA%E7%A1%80"><span class="toc-number">2.2.2.2.</span> <span class="toc-text">2.2.2  输入节基础</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E8%BE%93%E5%85%A5%E8%8A%82%E9%80%9A%E9%85%8D%E7%AC%A6%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.2.2.3.</span> <span class="toc-text">2.2.3  输入节通配符模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-COMMON%E7%9A%84%E8%BE%93%E5%85%A5%E8%8A%82"><span class="toc-number">2.2.3.</span> <span class="toc-text">2.3 COMMON的输入节</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/09/17/ld-map%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" title="ld之map文件学习"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ld之map文件学习"/></a><div class="content"><a class="title" href="/2023/09/17/ld-map%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" title="ld之map文件学习">ld之map文件学习</a><time datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/" title="ld链接脚本学习"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309072118986.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ld链接脚本学习"/></a><div class="content"><a class="title" href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E5%AD%A6%E4%B9%A0/" title="ld链接脚本学习">ld链接脚本学习</a><time datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E6%B5%8B%E8%AF%95/" title="ld链接脚本测试"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309101044269.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ld链接脚本测试"/></a><div class="content"><a class="title" href="/2023/09/17/ld%E9%93%BE%E6%8E%A5%E8%84%9A%E6%9C%AC%E6%B5%8B%E8%AF%95/" title="ld链接脚本测试">ld链接脚本测试</a><time datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/17/%E8%BF%9B%E7%A8%8B%E8%99%9A%E5%AD%98%E7%A9%BA%E9%97%B4%E5%88%86%E5%B8%83/" title="可执行文件的装载与进程空间"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309071532130.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="可执行文件的装载与进程空间"/></a><div class="content"><a class="title" href="/2023/09/17/%E8%BF%9B%E7%A8%8B%E8%99%9A%E5%AD%98%E7%A9%BA%E9%97%B4%E5%88%86%E5%B8%83/" title="可执行文件的装载与进程空间">可执行文件的装载与进程空间</a><time datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/17/%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%AD%A6%E4%B9%A0/" title="静态链接"><img src="https://cdn.jsdelivr.net/gh/firstHeart09/PicGoImage/img/202309071532130.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="静态链接"/></a><div class="content"><a class="title" href="/2023/09/17/%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%AD%A6%E4%B9%A0/" title="静态链接">静态链接</a><time datetime="2023-09-17T08:44:03.865Z" title="发表于 2023-09-17 16:44:03">2023-09-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 By codemonkey</div><div class="footer_custom_text"><div>欢迎来到我的博客🐱</div><div>作者:codemonkey | 一个正在学习底层的程序猿</div></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script src="xxxx"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
