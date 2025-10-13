@@ -1,0 +1,314 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>llvm初勘之clang(一) | 我的编译日志</title><meta name="author" content="firstHeart09"><meta name="copyright" content="firstHeart09"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 什么是clangclang是llvm中的一个子项目，是llvm中的用于编译C语言的前端驱动，负责完成预处理、词法分析、语法分析、语义分析、静态分析以及生成中间代码。在实际的应用中，clang驱动会调用cc1工具完成编译功能。 2. clang静态分析器clang静态分析器是在语义分析完成之后需要进行静态分析。这里的静态分析指的是在编译时模拟程序运行，通过路径敏感的方式判断程序中哪些路径不可执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="llvm初勘之clang(一)">
+<meta property="og:url" content="https://firstheart09.github.io/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="我的编译日志">
+<meta property="og:description" content="1. 什么是clangclang是llvm中的一个子项目，是llvm中的用于编译C语言的前端驱动，负责完成预处理、词法分析、语法分析、语义分析、静态分析以及生成中间代码。在实际的应用中，clang驱动会调用cc1工具完成编译功能。 2. clang静态分析器clang静态分析器是在语义分析完成之后需要进行静态分析。这里的静态分析指的是在编译时模拟程序运行，通过路径敏感的方式判断程序中哪些路径不可执">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&tv=0_0">
+<meta property="article:published_time" content="2025-10-07T02:27:46.190Z">
+<meta property="article:modified_time" content="2025-10-07T02:27:46.190Z">
+<meta property="article:author" content="firstHeart09">
+<meta property="article:tag" content="LLVM，编译器，算法，编程学习，个人博客">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&tv=0_0"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "llvm初勘之clang(一)",
+  "url": "https://firstheart09.github.io/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/",
+  "image": "https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&tv=0_0",
+  "datePublished": "2025-10-07T02:27:46.190Z",
+  "dateModified": "2025-10-07T02:27:46.190Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "firstHeart09",
+      "url": "https://firstHeart09.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://firstheart09.github.io/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: firstHeart09","link":"链接: ","source":"来源: 我的编译日志","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'FancyBox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'llvm初勘之clang(一)',
+  isHighlightShrink: true,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&amp;sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&amp;tv=0_0);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">我的编译日志</span></a><a class="nav-page-title" href="/"><span class="site-name">llvm初勘之clang(一)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">llvm初勘之clang(一)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-07T02:27:46.190Z" title="发表于 2025-10-07 10:27:46">2025-10-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-07T02:27:46.190Z" title="更新于 2025-10-07 10:27:46">2025-10-07</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;该文章创建于&quot;,&quot;messageNext&quot;:&quot;天前，文章可能已经过时，请优先查看最新的文章.&quot;,&quot;postUpdate&quot;:&quot;2025-10-07 10:27:46&quot;}" hidden></div><h2 id="1-什么是clang"><a href="#1-什么是clang" class="headerlink" title="1. 什么是clang"></a>1. 什么是clang</h2><p>clang是llvm中的一个子项目，是llvm中的用于编译C语言的前端驱动，负责完成预处理、词法分析、语法分析、语义分析、静态分析以及生成中间代码。<br>在实际的应用中，clang驱动会调用cc1工具完成编译功能。</p>
+<h2 id="2-clang静态分析器"><a href="#2-clang静态分析器" class="headerlink" title="2. clang静态分析器"></a>2. clang静态分析器</h2><p>clang静态分析器是在语义分析完成之后需要进行静态分析。这里的静态分析指的是在编译时模拟程序运行，通过<strong>路径敏感</strong>的方式判断程序中哪些路径不可执行，进而删除&#x2F;裁剪掉这些路径。<br>路径敏感：考虑程序控制流中所有可能的路径，进而模拟程序执行。在clang中有如下内容：</p>
+<ul>
+<li>ProgramState：程序状态，类似于虚拟机中的快照，包含变量的符号值、内存状态、约束集等；</li>
+<li>ConstrainManager：约束管理器，负责管理和推理这些约束；</li>
+</ul>
+<p>在clang内部，语义分析完成后，生成的是AST抽象语法树，在静态分析器中，会根据AST构建CFG（程序控制流图），然后基于这个CFG进行推理。在推理过程中，如果遇到分支状态，则会做出假设，以下面的代码为例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(i &gt; <span class="number">5</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span>(i &lt; <span class="number">3</span>) &#123; ... &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在到了if这里时，会有两个状态s1和s2，其约束集如下：<br>s1：假设 i&gt;5 ，此时的约束集为  i&gt;5<br>s2：假设 i&lt;&#x3D;5 ，此时的约束集为 i&lt;&#x3D;5<br>以s1节点出发，继续往下，此时遇到<code>if(i&lt;3)</code>，假设这个条件满足，那么此时的约束集变成了<code>i&gt;5, i&lt;3</code>，可以看到，这两个此时会发生冲突，所以此条路径不可能被满足，所以这条路径会被删除。<br>进而判断s2这条路径…</p>
+<h2 id="3-clang编译一个源程序的详细过程"><a href="#3-clang编译一个源程序的详细过程" class="headerlink" title="3. clang编译一个源程序的详细过程"></a>3. clang编译一个源程序的详细过程</h2><p>通过<code>-v</code>参数可以打印出编译链接的详细过程，这里以<code>hello.cpp</code>为例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line"> cout &lt;&lt; <span class="string">&quot;hello world!&quot;</span> &lt;&lt; endl;</span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过命令<code>clang++ -v hello.cpp -o hello</code>查看整个编译链接流程，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">❯ clang++ -v hello.cpp -o hello</span><br><span class="line">clang version 22.0.0git (git@github.com:llvm/llvm-project.git 7d748a9ceb3716a216a8b586b1d31e046bdee039)</span><br><span class="line">Target: x86_64-unknown-linux-gnu</span><br><span class="line">Thread model: posix</span><br><span class="line">InstalledDir: /home/dus/llvm/tools/RelWithDebInfo/bin</span><br><span class="line">Build config: +assertions</span><br><span class="line">Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/13</span><br><span class="line">Selected GCC installation: /usr/lib/gcc/x86_64-linux-gnu/13</span><br><span class="line">Candidate multilib: .;@m64</span><br><span class="line">Selected multilib: .;@m64</span><br><span class="line"> &quot;/home/dus/llvm/tools/RelWithDebInfo/bin/clang-22&quot; -cc1 -triple x86_64-unknown-linux-gnu -emit-obj -dumpdir hello- -disable-free -clear-ast-before-backend -main-file-name hello.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=/home/dus/llvm/test -v -fcoverage-compilation-dir=/home/dus/llvm/test -resource-dir /home/dus/llvm/tools/RelWithDebInfo/lib/clang/22 -internal-isystem /usr/include/c++/v1 -internal-isystem /home/dus/llvm/tools/RelWithDebInfo/lib/clang/22/include -internal-isystem /usr/local/include -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/13/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -ferror-limit 19 -fmessage-length=92 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fcolor-diagnostics -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /tmp/hello-74c908.o -x c++ hello.cpp</span><br><span class="line">clang -cc1 version 22.0.0git based upon LLVM 22.0.0git default target x86_64-unknown-linux-gnu</span><br><span class="line">ignoring nonexistent directory &quot;/usr/lib/gcc/x86_64-linux-gnu/13/../../../../x86_64-linux-gnu/include&quot;</span><br><span class="line">ignoring nonexistent directory &quot;/include&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include <span class="string">&quot;...&quot;</span> search starts here:</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;...&gt; search starts here:</span></span><br><span class="line"> /usr/include/c++/v1</span><br><span class="line"> /home/dus/llvm/tools/RelWithDebInfo/lib/clang/22/include</span><br><span class="line"> /usr/local/include</span><br><span class="line"> /usr/include/x86_64-linux-gnu</span><br><span class="line"> /usr/include</span><br><span class="line">End of search list.</span><br><span class="line"> &quot;/home/dus/llvm/tools/RelWithDebInfo/bin/ld.lld&quot; -z relro --hash-style=gnu --eh-frame-hdr -m elf_x86_64 -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o hello /lib/x86_64-linux-gnu/Scrt1.o /lib/x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib64 -L/lib -L/usr/lib /tmp/hello-74c908.o -lc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /lib/x86_64-linux-gnu/crtn.o</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，从<code>.cpp</code>文件到可执行文件主要调用了<code>clang-22</code>和<code>ld.lld</code>。其中<code>clang-22</code>主要完成了前中后端，相当于上一篇文章中<code>clang+opt+llc(-filetype=obj)</code>的整合，此时生成了<code>.o</code>目标文件，后续通过<code>ld.lld</code>完成链接过程，生成可执行文件。</p>
+<p>为了更好的理解中间过程，可以通过给<code>cc1</code>传递参数，打印出中间的结果，如下：</p>
+<ol>
+<li>词法分析</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang++ -fmodules -fsyntax-only -Xclang -dump-tokens hello.cpp</span><br></pre></td></tr></table></figure>
+
+<p>此时会打印出<code>hello.cpp</code>文件的词法分析信息，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">annot_module_include  Loc=&lt;hello.cpp:1:1&gt;</span><br><span class="line">using &#x27;using&#x27;  [StartOfLine] Loc=&lt;hello.cpp:3:1&gt;</span><br><span class="line">namespace &#x27;namespace&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:3:7&gt;</span><br><span class="line">identifier &#x27;std&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:3:17&gt;</span><br><span class="line">semi &#x27;;&#x27;  Loc=&lt;hello.cpp:3:20&gt;</span><br><span class="line">int &#x27;int&#x27;  [StartOfLine] Loc=&lt;hello.cpp:5:1&gt;</span><br><span class="line">identifier &#x27;main&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:5:5&gt;</span><br><span class="line">l_paren &#x27;(&#x27;  Loc=&lt;hello.cpp:5:9&gt;</span><br><span class="line">r_paren &#x27;)&#x27;  Loc=&lt;hello.cpp:5:10&gt;</span><br><span class="line">l_brace &#x27;&#123;&#x27;  Loc=&lt;hello.cpp:5:11&gt;</span><br><span class="line">identifier &#x27;cout&#x27;  [StartOfLine] [LeadingSpace] Loc=&lt;hello.cpp:6:2&gt;</span><br><span class="line">lessless &#x27;&lt;&lt;&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:6:7&gt;</span><br><span class="line">string_literal &#x27;&quot;hello world!&quot;&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:6:10&gt;</span><br><span class="line">lessless &#x27;&lt;&lt;&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:6:25&gt;</span><br><span class="line">identifier &#x27;endl&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:6:28&gt;</span><br><span class="line">semi &#x27;;&#x27;  Loc=&lt;hello.cpp:6:32&gt;</span><br><span class="line">return &#x27;return&#x27;  [StartOfLine] [LeadingSpace] Loc=&lt;hello.cpp:7:2&gt;</span><br><span class="line">numeric_constant &#x27;0&#x27;  [LeadingSpace] Loc=&lt;hello.cpp:7:9&gt;</span><br><span class="line">semi &#x27;;&#x27;  Loc=&lt;hello.cpp:7:10&gt;</span><br><span class="line">r_brace &#x27;&#125;&#x27;  [StartOfLine] Loc=&lt;hello.cpp:8:1&gt;</span><br><span class="line">eof &#x27;&#x27;  Loc=&lt;hello.cpp:8:2&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在<code>hello.cpp</code>文件中，<code>(</code>就是一个<code>token</code>，在词法分析中被识别为<code>l_paren</code>，上面的就是词法分析的输出结果。因此，词法分析的最终输出结果就是一个个的<code>token</code>流。</p>
+<ol start="2">
+<li>语法分析</li>
+</ol>
+<p>整个编译过程中，除了llvm IR,最重要的就是AST（抽象语法树），可以通过命令查看抽象语法树的输出，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang++ -fmodules -fsyntax-only -Xclang -ast-dump hello.cpp</span><br></pre></td></tr></table></figure>
+
+<p>上面命令的运行结果如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">TranslationUnitDecl 0x6506cc477cd8 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; &lt;undeserialized declarations&gt;</span><br><span class="line">|-TypedefDecl 0x6506cc4789c8 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; implicit __int128_t &#x27;__int128&#x27;</span><br><span class="line">| `-BuiltinType 0x6506cc4782a0 &#x27;__int128&#x27;</span><br><span class="line">|-TypedefDecl 0x6506cc478a38 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; implicit __uint128_t &#x27;unsigned __int128&#x27;</span><br><span class="line">| `-BuiltinType 0x6506cc4782c0 &#x27;unsigned __int128&#x27;</span><br><span class="line">|-TypedefDecl 0x6506cc4cc248 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; implicit __NSConstantString &#x27;__NSConstantString_tag&#x27;</span><br><span class="line">| `-RecordType 0x6506cc4cc210 &#x27;__NSConstantString_tag&#x27; canonical</span><br><span class="line">|   `-CXXRecord 0x6506cc478a90 &#x27;__NSConstantString_tag&#x27;</span><br><span class="line">|-TypedefDecl 0x6506cc4785b8 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; implicit __builtin_ms_va_list &#x27;char *&#x27;</span><br><span class="line">| `-PointerType 0x6506cc478570 &#x27;char *&#x27; imported</span><br><span class="line">|   `-BuiltinType 0x6506cc477d80 &#x27;char&#x27;</span><br><span class="line">|-TypedefDecl 0x6506cc478958 &lt;&lt;invalid sloc&gt;&gt; &lt;invalid sloc&gt; implicit __builtin_va_list &#x27;__va_list_tag[1]&#x27;</span><br><span class="line">| `-ConstantArrayType 0x6506cc478900 &#x27;__va_list_tag[1]&#x27; 1 </span><br><span class="line">|   `-RecordType 0x6506cc4788c0 &#x27;__va_list_tag&#x27; imported canonical</span><br><span class="line">|     `-CXXRecord 0x6506cc478610 &#x27;__va_list_tag&#x27;</span><br><span class="line">|-ImportDecl 0x6506cc4ccce0 &lt;hello.cpp:1:1&gt; col:1 implicit std_iostream</span><br><span class="line">|-UsingDirectiveDecl 0x6506cea257d0 &lt;line:3:1, col:17&gt; col:17 Namespace 0x6506ce9d2fb8 &#x27;std&#x27;</span><br><span class="line">`-FunctionDecl 0x6506cea25888 &lt;line:5:1, line:8:1&gt; line:5:5 main &#x27;int ()&#x27;</span><br><span class="line">  `-CompoundStmt 0x6506ceaae580 &lt;col:11, line:8:1&gt;</span><br><span class="line">    |-CXXOperatorCallExpr 0x6506ceaae4e8 &lt;line:6:2, col:28&gt; &#x27;std::ostream&#x27; lvalue &#x27;&lt;&lt;&#x27;</span><br><span class="line">    | |-ImplicitCastExpr 0x6506ceaae4d0 &lt;col:25&gt; &#x27;std::ostream &amp;(*)(std::ostream &amp;(*)(std::ostream &amp;))&#x27; &lt;FunctionToPointerDecay&gt;</span><br><span class="line">    | | `-DeclRefExpr 0x6506ceaae448 &lt;col:25&gt; &#x27;std::ostream &amp;(std::ostream &amp;(*)(std::ostream &amp;))&#x27; lvalue CXXMethod 0x6506cea9b6e8 &#x27;operator&lt;&lt;&#x27; &#x27;std::ostream &amp;(std::ostream &amp;(*)(std::ostream &amp;))&#x27;</span><br><span class="line">    | |-CXXOperatorCallExpr 0x6506ceacafd8 &lt;col:2, col:10&gt; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt;&#x27;:&#x27;std::ostream&#x27; lvalue &#x27;&lt;&lt;&#x27;</span><br><span class="line">    | | |-ImplicitCastExpr 0x6506ceacafc0 &lt;col:7&gt; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(*)(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;, const char *)&#x27; &lt;FunctionToPointerDecay&gt;</span><br><span class="line">    | | | `-DeclRefExpr 0x6506ceacaf38 &lt;col:7&gt; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;, const char *)&#x27; lvalue Function 0x6506ceabc0f0 &#x27;operator&lt;&lt;&#x27; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;, const char *)&#x27;</span><br><span class="line">    | | |-DeclRefExpr 0x6506cea1a390 &lt;col:2&gt; &#x27;ostream&#x27;:&#x27;std::ostream&#x27; lvalue Var 0x6506cea25980 &#x27;cout&#x27; &#x27;ostream&#x27;:&#x27;std::ostream&#x27;</span><br><span class="line">    | | `-ImplicitCastExpr 0x6506ceacaf20 &lt;col:10&gt; &#x27;const char *&#x27; &lt;ArrayToPointerDecay&gt;</span><br><span class="line">    | |   `-StringLiteral 0x6506cea18e90 &lt;col:10&gt; &#x27;const char[13]&#x27; lvalue &quot;hello world!&quot;</span><br><span class="line">    | `-ImplicitCastExpr 0x6506ceaae430 &lt;col:28&gt; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(*)(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;)&#x27; &lt;FunctionToPointerDecay&gt;</span><br><span class="line">    |   `-DeclRefExpr 0x6506ceaae408 &lt;col:28&gt; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;)&#x27; lvalue Function 0x6506ceacfa10 &#x27;endl&#x27; &#x27;basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;(basic_ostream&lt;char, std::char_traits&lt;char&gt;&gt; &amp;)&#x27; (FunctionTemplate 0x6506ceaccae0 &#x27;endl&#x27;)</span><br><span class="line">    `-ReturnStmt 0x6506ceaae570 &lt;line:7:2, col:9&gt;</span><br><span class="line">      `-IntegerLiteral 0x6506ceaae550 &lt;col:9&gt; &#x27;int&#x27; 0</span><br></pre></td></tr></table></figure>
+
+<p>上述输出，就是<code>hello.cpp</code>的语法树结果，该语法树中每个节点有如下重要信息：</p>
+<ul>
+<li>节点类型说明：比如说 <code>FunctionDecl</code> 说明该节点是一个函数定义节点；<code>CXXOperatorCallExpr</code> 表示<code>C++</code>运算符调用表达式；</li>
+<li>内存地址（虚拟地址）：比如说<code>FunctionDecl</code>节点的虚拟地址为<code>0x6506cea25888</code>；</li>
+<li>源码位置：比如说<code>FunctionDecl</code>节点对应的函数名为<code>main</code>，所在位置为<code>&lt;line:5:1, line:8:1&gt; line:5:5</code>，即表明<code>main</code>函数这个函数体的位置是第5行到第8行，其中<code>main</code>标识符所在的位置是第5行第5列</li>
+<li>层次结构：整个AST中有如下结构，表明抽象树节点之间的关系，如下<ul>
+<li><code>|</code>：表明上面还有兄弟节点，用竖线连接起来；</li>
+<li><code>|-</code>：该节点是某个父节点的子节点之一（非最后一个子节点）；</li>
+<li>&#96;&#96;-&#96;：该节点是某个父节点的最后一个子节点；</li>
+<li>空格：用来对齐，表示当前节点所在层级</li>
+</ul>
+</li>
+</ul>
+<p>以<code>main</code>函数这部分为例，分析并使用<code>xmind</code>绘制出树形结构。结果如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">FunctionDecl: main &#x27;int ()&#x27;</span><br><span class="line">└── CompoundStmt</span><br><span class="line">    ├── CXXOperatorCallExpr: &#x27;&lt;&lt;&#x27;</span><br><span class="line">    │   ├── ImplicitCastExpr (FunctionToPointerDecay)</span><br><span class="line">    │   │   └── DeclRefExpr: &#x27;operator&lt;&lt;&#x27; (CXXMethod)</span><br><span class="line">    │   ├── CXXOperatorCallExpr: &#x27;&lt;&lt;&#x27;</span><br><span class="line">    │   │   ├── ImplicitCastExpr (FunctionToPointerDecay)</span><br><span class="line">    │   │   │   └── DeclRefExpr: &#x27;operator&lt;&lt;&#x27; (Function)</span><br><span class="line">    │   │   ├── DeclRefExpr: &#x27;cout&#x27; (Var)</span><br><span class="line">    │   │   └── ImplicitCastExpr (ArrayToPointerDecay)</span><br><span class="line">    │   │       └── StringLiteral: &quot;hello world!&quot;</span><br><span class="line">    │   └── ImplicitCastExpr (FunctionToPointerDecay)</span><br><span class="line">    │       └── DeclRefExpr: &#x27;endl&#x27; (Function)</span><br><span class="line">    └── ReturnStmt</span><br><span class="line">        └── IntegerLiteral: 0</span><br></pre></td></tr></table></figure>
+
+<p>上面是使用shell表示的抽象语法树，下面是我自己手绘的结构图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/firstHeart09/picgo-image/img/20251004002406597.jpg" alt="main函数抽象语法树结构体"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://firstHeart09.github.io">firstHeart09</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/">https://firstheart09.github.io/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://firstHeart09.github.io" target="_blank">我的编译日志</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&amp;sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&amp;tv=0_0" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bllvm%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="llvm初勘之llvm基础知识"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2Mtc3NsLmR1aXRhbmcuY29tL3VwbG9hZHMvaXRlbS8yMDIwMDYvMDcvMjAyMDA2MDcxNDM2NDZfaW1mYnouanBn&amp;sign=yx:fp69pcAtXSYIflUZ4yI307B7ZtQ=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">llvm初勘之llvm基础知识</div></div><div class="info-2"><div class="info-item-1">1. 什么是llvmllvm是一个开源的编译器基础设施项目，由一系列可重用的编译器工具链库和工具组成。llvm的设计目标是：高度模块化、可重用、跨平台。 1.1 典型的三段式设计llvm采用经典的三段式设计，这种设计使得llvm既灵活又强大：  前端：负责将源代码（如C、C++）解析，进行词法、语法、语义检查，生成与目标架构无关的llvm中间表示； 中端：也叫优化器，在llvm IR上进行与目标架构无关的优化，如死代码消除、循环优化等； 后端：负责将优化后的llvm IR映射到特定的目标架构，进行与目标架构相关的指令选择、寄存器分配、指令调度等，生成与目标架构相关的代码。严格意义上，LLVM 后端（llc）主要输出汇编文件 .s文件，但通过 Clang 可以直接得到 .o文件。  可以看到，llvm IR是连接整个系统的桥梁，是实现语言与架构无关型的关键。这种设计模式带来了巨大的优势：要支持一种新语言，只需要实现对应的前端即可；要实现一个新的架构，只需要实现对应的后端即可。 1.2 如何理解llvm是一个编译基础设施，而不是一个编译器可以这样理解，llvm本身是一个编译器基础设施...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81ODg2NC8zNTMyNg=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">firstHeart09</div><div class="author-info-description">一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AFclang"><span class="toc-number">1.</span> <span class="toc-text">1. 什么是clang</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-clang%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90%E5%99%A8"><span class="toc-number">2.</span> <span class="toc-text">2. clang静态分析器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-clang%E7%BC%96%E8%AF%91%E4%B8%80%E4%B8%AA%E6%BA%90%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">3. clang编译一个源程序的详细过程</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/10/13/llvm%E5%88%9D%E5%8B%98%E4%B9%8B.ll%E6%96%87%E4%BB%B6%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90/" title="llvm初勘之.ll文件内容分析"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vMTBkZmE5ZWM4YTEzNjMyN2IyNjliZWFjODM4ZmEwZWMwOWZhYzdhZA==&amp;sign=yx:1jycbmjHYQY1cmlS7X4UX0S_-qs=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm初勘之.ll文件内容分析"/></a><div class="content"><a class="title" href="/2025/10/13/llvm%E5%88%9D%E5%8B%98%E4%B9%8B.ll%E6%96%87%E4%BB%B6%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90/" title="llvm初勘之.ll文件内容分析">llvm初勘之.ll文件内容分析</a><time datetime="2025-10-13T02:00:00.000Z" title="发表于 2025-10-13 10:00:00">2025-10-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/08/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bllvm%20IR%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D/" title="llvm初勘之llvm IR简单介绍"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vMTBkZmE5ZWM4YTEzNjMyN2IyNjliZWFjODM4ZmEwZWMwOWZhYzdhZA==&amp;sign=yx:1jycbmjHYQY1cmlS7X4UX0S_-qs=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm初勘之llvm IR简单介绍"/></a><div class="content"><a class="title" href="/2025/10/08/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bllvm%20IR%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D/" title="llvm初勘之llvm IR简单介绍">llvm初勘之llvm IR简单介绍</a><time datetime="2025-10-08T07:51:54.284Z" title="发表于 2025-10-08 15:51:54">2025-10-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/" title="llvm初勘之clang(一)"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2ltYWdlNDguMzYwZG9jLmNvbS9Eb3dubG9hZEltZy8yMDEyLzAxLzI3MTAvMjEwNzc5NzlfNi5qcGc=&amp;sign=yx:ROHwlRU3JMvRp1sXgtUOKbm0WQM=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm初勘之clang(一)"/></a><div class="content"><a class="title" href="/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bclang%E5%9F%BA%E7%A1%80%EF%BC%88%E4%B8%80%EF%BC%89/" title="llvm初勘之clang(一)">llvm初勘之clang(一)</a><time datetime="2025-10-07T02:27:46.190Z" title="发表于 2025-10-07 10:27:46">2025-10-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bllvm%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="llvm初勘之llvm基础知识"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2Mtc3NsLmR1aXRhbmcuY29tL3VwbG9hZHMvaXRlbS8yMDIwMDYvMDcvMjAyMDA2MDcxNDM2NDZfaW1mYnouanBn&amp;sign=yx:fp69pcAtXSYIflUZ4yI307B7ZtQ=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm初勘之llvm基础知识"/></a><div class="content"><a class="title" href="/2025/10/07/llvm%E5%88%9D%E5%8B%98%E4%B9%8Bllvm%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="llvm初勘之llvm基础知识">llvm初勘之llvm基础知识</a><time datetime="2025-10-07T02:27:46.190Z" title="发表于 2025-10-07 10:27:46">2025-10-07</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By firstHeart09</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.1"></script><script src="/js/main.js?v=5.5.1"></script><script src="/"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      true
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.1"></script></div></div></body></html>
