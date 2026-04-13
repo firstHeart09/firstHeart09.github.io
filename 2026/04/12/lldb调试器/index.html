@@ -1,0 +1,819 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>lldb调试器 | 我的编译日志</title><meta name="author" content="firstHeart09"><meta name="copyright" content="firstHeart09"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在源程序的编写过程中，经常会出现各种各种的错误，这些错误被称为 bug。针对这些错误，我们可以采用各种方法解决，比如说，我们在代码中添加各种各样的自定义输出，通过这些输出，可以详细观察程序的运行过程，进而确定问题出在哪里；或者说，可以通过调试器去关注程序中可能出错的点，进而确定问题所在。在 llvm 编译器中，lldb 就是这样的一个角色。 启动 lldb 时可用指令在这里，首先介绍一些 lldb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lldb调试器">
+<meta property="og:url" content="https://firstheart09.github.io/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/index.html">
+<meta property="og:site_name" content="我的编译日志">
+<meta property="og:description" content="在源程序的编写过程中，经常会出现各种各种的错误，这些错误被称为 bug。针对这些错误，我们可以采用各种方法解决，比如说，我们在代码中添加各种各样的自定义输出，通过这些输出，可以详细观察程序的运行过程，进而确定问题出在哪里；或者说，可以通过调试器去关注程序中可能出错的点，进而确定问题所在。在 llvm 编译器中，lldb 就是这样的一个角色。 启动 lldb 时可用指令在这里，首先介绍一些 lldb">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0">
+<meta property="article:published_time" content="2026-04-12T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-12T14:15:25.887Z">
+<meta property="article:author" content="firstHeart09">
+<meta property="article:tag" content="lldb">
+<meta property="article:tag" content="调试器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "lldb调试器",
+  "url": "https://firstheart09.github.io/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/",
+  "image": "https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0",
+  "datePublished": "2026-04-12T09:00:00.000Z",
+  "dateModified": "2026-04-12T14:15:25.887Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "firstHeart09",
+      "url": "https://firstHeart09.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://firstheart09.github.io/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: firstHeart09","link":"链接: ","source":"来源: 我的编译日志","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'FancyBox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'lldb调试器',
+  isHighlightShrink: true,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">我的编译日志</span></a><a class="nav-page-title" href="/"><span class="site-name">lldb调试器</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">lldb调试器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 09:00:00">2026-04-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-12T14:15:25.887Z" title="更新于 2026-04-12 14:15:25">2026-04-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%B0%83%E8%AF%95%E5%99%A8/">调试器</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;该文章创建于&quot;,&quot;messageNext&quot;:&quot;天前，文章可能已经过时，请优先查看最新的文章.&quot;,&quot;postUpdate&quot;:&quot;2026-04-12 14:15:25&quot;}" hidden></div><p>在源程序的编写过程中，经常会出现各种各种的错误，这些错误被称为 bug。<br>针对这些错误，我们可以采用各种方法解决，比如说，我们在代码中添加各种各样的自定义输出，通过这些输出，可以详细观察程序的运行过程，进而确定问题出在哪里；或者说，可以通过<strong>调试器</strong>去关注程序中可能出错的点，进而确定问题所在。在 llvm 编译器中，lldb 就是这样的一个角色。</p>
+<h1 id="启动-lldb-时可用指令"><a href="#启动-lldb-时可用指令" class="headerlink" title="启动 lldb 时可用指令"></a>启动 lldb 时可用指令</h1><p>在这里，首先介绍一些 lldb 的常用命令：<br>LLDB 是 LLVM 项目中的调试器，作用与 gdb 类似，常用于调试可执行程序、附加正在运行的进程、分析 core 文件以及查看调用栈、变量、线程和断点等信息。下面结合 <code>lldb --help</code> 的输出，对其常用命令行选项进行说明。</p>
+<h2 id="1-基本用法"><a href="#1-基本用法" class="headerlink" title="1. 基本用法"></a>1. 基本用法</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb [options]</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>options</code> 表示启动 LLDB 时可以附加的各种参数。常见用法如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lldb</span><br><span class="line">lldb ./a.out</span><br><span class="line">lldb -p 1234</span><br><span class="line">lldb -c core.12345</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li><code>lldb</code>：直接启动 LLDB。</li>
+<li><code>lldb ./a.out</code>：加载可执行文件 <code>a.out</code> 进行调试。</li>
+<li><code>lldb -p 1234</code>：附加到进程号为 1234 的正在运行进程。</li>
+<li><code>lldb -c core.12345</code>：加载 core 文件进行分析。</li>
+</ul>
+<hr>
+<h2 id="2-附加到进程（使用-lldb-跟踪这个进程、ATTACHING）"><a href="#2-附加到进程（使用-lldb-跟踪这个进程、ATTACHING）" class="headerlink" title="2. 附加到进程（使用 lldb 跟踪这个进程、ATTACHING）"></a>2. 附加到进程（使用 lldb 跟踪这个进程、ATTACHING）</h2><h3 id="（1）按进程名附加"><a href="#（1）按进程名附加" class="headerlink" title="（1）按进程名附加"></a>（1）按进程名附加</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --attach-name &lt;name&gt;</span><br><span class="line">lldb -n &lt;name&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -n myserver</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>该命令用于按进程名附加到目标进程，适用于已知程序名但不知道 PID 的情况。</p>
+<h3 id="（2）按进程号附加"><a href="#（2）按进程号附加" class="headerlink" title="（2）按进程号附加"></a>（2）按进程号附加</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --attach-pid &lt;pid&gt;</span><br><span class="line">lldb -p &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -p 12345</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>该命令用于按 PID 精确附加到指定进程，是最常用的附加方式。</p>
+<h3 id="（3）等待进程启动后附加"><a href="#（3）等待进程启动后附加" class="headerlink" title="（3）等待进程启动后附加"></a>（3）等待进程启动后附加</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -n myserver -w</span><br><span class="line">lldb --attach-name myserver --wait-for</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>如果当前系统中还没有名为 <code>myserver</code> 的进程，LLDB 会先等待，待该进程启动后再自动附加。这种方式适合调试稍后启动的服务进程或守护进程。</p>
+<hr>
+<h2 id="3-启动时自动执行命令（COMMANDS）"><a href="#3-启动时自动执行命令（COMMANDS）" class="headerlink" title="3. 启动时自动执行命令（COMMANDS）"></a>3. 启动时自动执行命令（COMMANDS）</h2><p>这类参数用于在 LLDB 启动过程中自动执行指定命令或脚本，适合批处理调试和自动化收集信息。</p>
+<h3 id="（1）批处理模式"><a href="#（1）批处理模式" class="headerlink" title="（1）批处理模式"></a>（1）批处理模式</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --batch</span><br><span class="line">lldb -b</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -b -o run -o bt ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p><code>--batch</code> 表示 LLDB 执行完指定命令后自动退出，而不是进入交互界面。上例表示：</p>
+<ol>
+<li>加载 <code>a.out</code></li>
+<li>执行 <code>run</code></li>
+<li>再执行 <code>bt</code></li>
+<li>最后退出</li>
+</ol>
+<h3 id="（2）加载目标文件前执行一条命令"><a href="#（2）加载目标文件前执行一条命令" class="headerlink" title="（2）加载目标文件前执行一条命令"></a>（2）加载目标文件前执行一条命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -O &#x27;command&#x27;</span><br><span class="line">lldb --one-line-before-file &#x27;command&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -O &#x27;settings set stop-disassembly-count 20&#x27; ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>该命令表示在加载调试目标之前，先执行一条 LLDB 内部命令，通常用于预先修改调试器设置。</p>
+<h3 id="（3）加载目标文件后执行一条命令"><a href="#（3）加载目标文件后执行一条命令" class="headerlink" title="（3）加载目标文件后执行一条命令"></a>（3）加载目标文件后执行一条命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -o &#x27;command&#x27;</span><br><span class="line">lldb --one-line &#x27;command&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -o run ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>该命令表示在目标文件加载完成后，自动执行一条 LLDB 命令。常用于自动运行程序、自动打印栈等场景。</p>
+<p>如果指定多个 <code>-o</code>，则按顺序执行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -o run -o bt ./a.out</span><br></pre></td></tr></table></figure>
+
+<h3 id="（4）程序崩溃时执行一条命令"><a href="#（4）程序崩溃时执行一条命令" class="headerlink" title="（4）程序崩溃时执行一条命令"></a>（4）程序崩溃时执行一条命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -k &#x27;command&#x27;</span><br><span class="line">lldb --one-line-on-crash &#x27;command&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -b -o run -k bt ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>在 batch 模式下，如果程序崩溃，则自动执行指定命令。上例中，程序崩溃后会自动打印调用栈。</p>
+<h3 id="（5）加载目标文件前执行脚本"><a href="#（5）加载目标文件前执行脚本" class="headerlink" title="（5）加载目标文件前执行脚本"></a>（5）加载目标文件前执行脚本</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -S script_file</span><br><span class="line">lldb --source-before-file script_file</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -S init.lldb ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>表示在加载目标文件之前，执行 <code>init.lldb</code> 中的 LLDB 命令。</p>
+<h3 id="（6）加载目标文件后执行脚本"><a href="#（6）加载目标文件后执行脚本" class="headerlink" title="（6）加载目标文件后执行脚本"></a>（6）加载目标文件后执行脚本</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -s script_file</span><br><span class="line">lldb --source script_file</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -s cmds.lldb ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>表示在加载目标文件之后执行脚本文件中的命令。</p>
+<h3 id="（7）程序崩溃时执行脚本"><a href="#（7）程序崩溃时执行脚本" class="headerlink" title="（7）程序崩溃时执行脚本"></a>（7）程序崩溃时执行脚本</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -K script_file</span><br><span class="line">lldb --source-on-crash script_file</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -b -o run -K crash_cmds.lldb ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>如果程序在 batch 模式下崩溃，则自动执行指定脚本文件中的命令。</p>
+<h3 id="（8）安静模式执行命令"><a href="#（8）安静模式执行命令" class="headerlink" title="（8）安静模式执行命令"></a>（8）安静模式执行命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb -Q</span><br><span class="line">lldb --source-quietly</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>执行命令或脚本时，不回显命令本身，只输出结果，适合让日志输出更简洁。</p>
+<h3 id="（9）是否读取-lldbinit"><a href="#（9）是否读取-lldbinit" class="headerlink" title="（9）是否读取 .lldbinit"></a>（9）是否读取 <code>.lldbinit</code></h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lldb --local-lldbinit</span><br><span class="line">lldb --no-lldbinit</span><br><span class="line">lldb -x</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li><code>--local-lldbinit</code>：允许读取当前目录下的 <code>.lldbinit</code> 文件。</li>
+<li><code>--no-lldbinit</code> 或 <code>-x</code>：不自动读取任何 <code>.lldbinit</code> 文件。</li>
+</ul>
+<p><code>.lldbinit</code> 文件类似于 shell 中的 <code>.bashrc</code>，可用于存放 LLDB 的初始化命令。</p>
+<hr>
+<h2 id="4-常规选项（OPTIONS）"><a href="#4-常规选项（OPTIONS）" class="headerlink" title="4. 常规选项（OPTIONS）"></a>4. 常规选项（OPTIONS）</h2><h3 id="（1）指定架构"><a href="#（1）指定架构" class="headerlink" title="（1）指定架构"></a>（1）指定架构</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --arch &lt;architecture&gt;</span><br><span class="line">lldb -a &lt;architecture&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb --arch x86_64 ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于指定调试目标使用的架构类型，常见于多架构环境。</p>
+<h3 id="（2）指定-core-文件"><a href="#（2）指定-core-文件" class="headerlink" title="（2）指定 core 文件"></a>（2）指定 core 文件</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --core &lt;filename&gt;</span><br><span class="line">lldb -c &lt;filename&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -c /tmp/core-myprog-12345</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>该命令用于加载 core 文件进行调试分析，适用于程序崩溃后的事后定位。</p>
+<p>通常也可以与可执行文件一起使用：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -c /tmp/core-myprog-12345 ./myprog</span><br></pre></td></tr></table></figure>
+
+<h3 id="（3）指定调试文件"><a href="#（3）指定调试文件" class="headerlink" title="（3）指定调试文件"></a>（3）指定调试文件</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --file &lt;filename&gt;</span><br><span class="line">lldb -f &lt;filename&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -f ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>显式指定要调试的程序文件，和直接写 <code>lldb ./a.out</code> 作用类似。</p>
+<h3 id="（4）打开外部编辑器"><a href="#（4）打开外部编辑器" class="headerlink" title="（4）打开外部编辑器"></a>（4）打开外部编辑器</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --editor</span><br><span class="line">lldb -e</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>允许 LLDB 调用系统外部编辑器打开源码文件，属于辅助功能。</p>
+<h3 id="（5）查看帮助信息"><a href="#（5）查看帮助信息" class="headerlink" title="（5）查看帮助信息"></a>（5）查看帮助信息</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --help</span><br><span class="line">lldb -h</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>显示 LLDB 的帮助信息。</p>
+<h3 id="（6）查看版本信息"><a href="#（6）查看版本信息" class="headerlink" title="（6）查看版本信息"></a>（6）查看版本信息</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --version</span><br><span class="line">lldb -v</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>显示 LLDB 当前版本。</p>
+<h3 id="（7）关闭彩色输出"><a href="#（7）关闭彩色输出" class="headerlink" title="（7）关闭彩色输出"></a>（7）关闭彩色输出</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --no-use-colors</span><br><span class="line">lldb -X</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>禁用彩色输出，适合终端不支持颜色或者需要将输出保存为日志文件的情况。</p>
+<hr>
+<h2 id="5-REPL-模式"><a href="#5-REPL-模式" class="headerlink" title="5. REPL 模式"></a>5. REPL 模式</h2><h3 id="（1）启动-REPL"><a href="#（1）启动-REPL" class="headerlink" title="（1）启动 REPL"></a>（1）启动 REPL</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --repl</span><br><span class="line">lldb -r</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -r</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>启动 LLDB 的 REPL 模式，即交互式解释执行环境。此模式下通常不直接调试某个具体程序，而更偏向语言交互测试。</p>
+<h3 id="（2）指定-REPL-语言"><a href="#（2）指定-REPL-语言" class="headerlink" title="（2）指定 REPL 语言"></a>（2）指定 REPL 语言</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --repl-language &lt;language&gt;</span><br><span class="line">lldb -R &lt;language&gt;</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于指定 REPL 运行时使用的语言。</p>
+<h3 id="（3）带参数启动-REPL"><a href="#（3）带参数启动-REPL" class="headerlink" title="（3）带参数启动 REPL"></a>（3）带参数启动 REPL</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --repl=&lt;flags&gt;</span><br><span class="line">lldb -r=&lt;flags&gt;</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于带附加参数启动 REPL 模式，具体用法依赖实际语言和环境需求。</p>
+<hr>
+<h2 id="6-脚本支持（SCRIPTING）"><a href="#6-脚本支持（SCRIPTING）" class="headerlink" title="6. 脚本支持（SCRIPTING）"></a>6. 脚本支持（SCRIPTING）</h2><h3 id="（1）指定脚本语言"><a href="#（1）指定脚本语言" class="headerlink" title="（1）指定脚本语言"></a>（1）指定脚本语言</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --script-language &lt;language&gt;</span><br><span class="line">lldb -l &lt;language&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -l python</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于指定 LLDB 使用的脚本语言，常见的是 Python。LLDB 支持通过脚本进行自动化扩展。</p>
+<h3 id="（2）查看-Python-路径"><a href="#（2）查看-Python-路径" class="headerlink" title="（2）查看 Python 路径"></a>（2）查看 Python 路径</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lldb --python-path</span><br><span class="line">lldb -P</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>输出当前版本 LLDB 对应的 <code>lldb.py</code> 文件路径，便于进行 Python 扩展开发或环境配置。</p>
+<h3 id="（3）打印脚本解释器信息"><a href="#（3）打印脚本解释器信息" class="headerlink" title="（3）打印脚本解释器信息"></a>（3）打印脚本解释器信息</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb --print-script-interpreter-info</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>打印脚本解释器的 JSON 格式信息，通常用于开发环境检查或工具集成。</p>
+<hr>
+<h2 id="7-参数分隔符-的作用"><a href="#7-参数分隔符-的作用" class="headerlink" title="7. 参数分隔符 -- 的作用"></a>7. 参数分隔符 <code>--</code> 的作用</h2><p>帮助信息中给出的一个重要示例如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb --arch x86_64 /path/to/program program_argument -- --arch armv7</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p><code>--</code> 的作用是分隔 <strong>LLDB 自己的参数</strong> 和 <strong>被调试程序的参数</strong>。<br>也就是说：</p>
+<ul>
+<li><code>--</code> 前面的内容由 LLDB 解释</li>
+<li><code>--</code> 后面的内容作为目标程序的参数传入</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb ./a.out -- -x -y</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>-x -y</code> 是传给 <code>a.out</code> 的，而不是传给 LLDB 的。</p>
+<hr>
+<h2 id="8-常见示例"><a href="#8-常见示例" class="headerlink" title="8. 常见示例"></a>8. 常见示例</h2><h3 id="（1）调试一个程序"><a href="#（1）调试一个程序" class="headerlink" title="（1）调试一个程序"></a>（1）调试一个程序</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb ./a.out</span><br></pre></td></tr></table></figure>
+
+<h3 id="（2）附加到某个进程"><a href="#（2）附加到某个进程" class="headerlink" title="（2）附加到某个进程"></a>（2）附加到某个进程</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -p 12345</span><br></pre></td></tr></table></figure>
+
+<h3 id="（3）按进程名附加并等待其启动"><a href="#（3）按进程名附加并等待其启动" class="headerlink" title="（3）按进程名附加并等待其启动"></a>（3）按进程名附加并等待其启动</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -n myserver -w</span><br></pre></td></tr></table></figure>
+
+<h3 id="（4）调试-core-文件"><a href="#（4）调试-core-文件" class="headerlink" title="（4）调试 core 文件"></a>（4）调试 core 文件</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -c /tmp/core-myprog-12345 ./myprog</span><br></pre></td></tr></table></figure>
+
+<h3 id="（5）批处理运行并打印栈"><a href="#（5）批处理运行并打印栈" class="headerlink" title="（5）批处理运行并打印栈"></a>（5）批处理运行并打印栈</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -b -o run -k bt ./a.out</span><br></pre></td></tr></table></figure>
+
+<h3 id="（6）加载前后分别执行脚本"><a href="#（6）加载前后分别执行脚本" class="headerlink" title="（6）加载前后分别执行脚本"></a>（6）加载前后分别执行脚本</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -S before.lldb -s after.lldb ./a.out</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9. 总结"></a>9. 总结</h2><p>从功能上看，<code>lldb --help</code> 中的参数大致可以分为以下几类：</p>
+<ol>
+<li><strong>ATTACHING</strong>：附加到正在运行的进程</li>
+<li><strong>COMMANDS</strong>：启动时自动执行命令或脚本</li>
+<li><strong>OPTIONS</strong>：常规启动参数，如指定文件、core、架构等</li>
+<li><strong>REPL</strong>：交互式解释环境相关参数</li>
+<li><strong>SCRIPTING</strong>：脚本语言与扩展相关参数</li>
+</ol>
+<p>需要注意的是，这些内容都是 <strong>启动 LLDB 时使用的命令行参数</strong>，而不是进入 LLDB 之后输入的内部命令。<br>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lldb -p 1234</span><br><span class="line">lldb -c corefile</span><br><span class="line">lldb -o run</span><br></pre></td></tr></table></figure>
+
+<p>这些都是 shell 中输入的启动参数；而进入 LLDB 之后输入的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">run</span><br><span class="line">bt</span><br><span class="line">breakpoint set --name main</span><br><span class="line">thread list</span><br><span class="line">frame variable</span><br></pre></td></tr></table></figure>
+
+<p>才属于 LLDB 的内部调试命令。</p>
+<p>因此，在学习 LLDB 时，建议先区分：</p>
+<ul>
+<li><strong>命令行启动参数</strong></li>
+<li><strong>LLDB 内部交互命令</strong></li>
+</ul>
+<p>这样会更容易建立清晰的理解。</p>
+<h1 id="lldb-内部可用指令"><a href="#lldb-内部可用指令" class="headerlink" title="lldb 内部可用指令"></a>lldb 内部可用指令</h1><p>上面介绍的是启动 lldb 时可以使用的命令或者参数，<strong>进入 LLDB 之后</strong>，在 <code>(lldb)</code> 提示符下可以直接输入的内部命令，而不是启动 LLDB 时在 shell 中使用的命令行参数。</p>
+<p>例如下面这些属于 LLDB 内部命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(lldb) run</span><br><span class="line">(lldb) bt</span><br><span class="line">(lldb) breakpoint set --name main</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="1-程序运行控制命令"><a href="#1-程序运行控制命令" class="headerlink" title="1. 程序运行控制命令"></a>1. 程序运行控制命令</h2><h3 id="run"><a href="#run" class="headerlink" title="run"></a><code>run</code></h3><p>启动程序运行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">run</span><br><span class="line">run arg1 arg2</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li><code>run</code>：直接运行程序</li>
+<li><code>run arg1 arg2</code>：带参数运行程序</li>
+</ul>
+<hr>
+<h3 id="continue"><a href="#continue" class="headerlink" title="continue"></a><code>continue</code></h3><p>继续执行程序。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">continue</span><br></pre></td></tr></table></figure>
+
+<p>常用缩写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>当程序因断点、异常或信号停下后，可以使用 <code>continue</code> 让程序继续执行。</p>
+<hr>
+<h3 id="next"><a href="#next" class="headerlink" title="next"></a><code>next</code></h3><p>单步越过。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">next</span><br></pre></td></tr></table></figure>
+
+<p>常用缩写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>按源码一行一行向下执行。如果当前行中包含函数调用，<code>next</code> 不会进入函数内部，而是将整个函数调用当作一行执行完。</p>
+<hr>
+<h3 id="step"><a href="#step" class="headerlink" title="step"></a><code>step</code></h3><p>单步进入。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">step</span><br></pre></td></tr></table></figure>
+
+<p>常用缩写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>如果当前行包含函数调用，<code>step</code> 会进入该函数内部继续调试。</p>
+<hr>
+<h3 id="finish"><a href="#finish" class="headerlink" title="finish"></a><code>finish</code></h3><p>运行到当前函数返回。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">finish</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>适合已经进入某个函数内部后，想快速执行到该函数结束的位置。</p>
+<hr>
+<h3 id="process-kill"><a href="#process-kill" class="headerlink" title="process kill"></a><code>process kill</code></h3><p>结束被调试进程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">process kill</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="process-status"><a href="#process-status" class="headerlink" title="process status"></a><code>process status</code></h3><p>查看当前进程状态。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">process status</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-断点相关命令"><a href="#2-断点相关命令" class="headerlink" title="2. 断点相关命令"></a>2. 断点相关命令</h2><h3 id="breakpoint-set"><a href="#breakpoint-set" class="headerlink" title="breakpoint set"></a><code>breakpoint set</code></h3><p>设置断点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">breakpoint set --name main</span><br><span class="line">breakpoint set --file test.cpp --line 20</span><br><span class="line">breakpoint set --address 0x401234</span><br></pre></td></tr></table></figure>
+
+<p>常用写法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">b main</span><br><span class="line">br s -f test.cpp -l 20</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li>按函数名设置断点</li>
+<li>按文件名和行号设置断点</li>
+<li>按代码地址设置断点</li>
+</ul>
+<hr>
+<h3 id="breakpoint-list"><a href="#breakpoint-list" class="headerlink" title="breakpoint list"></a><code>breakpoint list</code></h3><p>查看断点列表。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">breakpoint list</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="breakpoint-disable"><a href="#breakpoint-disable" class="headerlink" title="breakpoint disable"></a><code>breakpoint disable</code></h3><p>禁用断点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">breakpoint disable 1</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>禁用后断点仍然存在，但不会生效。</p>
+<hr>
+<h3 id="breakpoint-enable"><a href="#breakpoint-enable" class="headerlink" title="breakpoint enable"></a><code>breakpoint enable</code></h3><p>启用断点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">breakpoint enable 1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="breakpoint-delete"><a href="#breakpoint-delete" class="headerlink" title="breakpoint delete"></a><code>breakpoint delete</code></h3><p>删除断点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">breakpoint delete 1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-调用栈与栈帧命令"><a href="#3-调用栈与栈帧命令" class="headerlink" title="3. 调用栈与栈帧命令"></a>3. 调用栈与栈帧命令</h2><h3 id="bt"><a href="#bt" class="headerlink" title="bt"></a><code>bt</code></h3><p>查看当前线程调用栈。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bt</span><br></pre></td></tr></table></figure>
+
+<p>等价形式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread backtrace</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>可以查看当前线程从当前函数到更上层调用者的调用关系。</p>
+<hr>
+<h3 id="thread-backtrace-all"><a href="#thread-backtrace-all" class="headerlink" title="thread backtrace all"></a><code>thread backtrace all</code></h3><p>查看所有线程的调用栈。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread backtrace all</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>在分析多线程程序卡死、死锁或异常时非常常用。</p>
+<hr>
+<h3 id="frame-info"><a href="#frame-info" class="headerlink" title="frame info"></a><code>frame info</code></h3><p>查看当前栈帧信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">frame info</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="frame-select"><a href="#frame-select" class="headerlink" title="frame select"></a><code>frame select</code></h3><p>切换当前栈帧。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">frame select 0</span><br><span class="line">frame select 1</span><br><span class="line">frame select 2</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li><code>0</code> 表示当前函数对应的栈帧</li>
+<li><code>1</code> 表示上一级调用者</li>
+<li>数字越大，表示调用层次越上层</li>
+</ul>
+<hr>
+<h2 id="4-变量查看命令"><a href="#4-变量查看命令" class="headerlink" title="4. 变量查看命令"></a>4. 变量查看命令</h2><h3 id="frame-variable"><a href="#frame-variable" class="headerlink" title="frame variable"></a><code>frame variable</code></h3><p>查看当前栈帧中的局部变量。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">frame variable</span><br><span class="line">frame variable x</span><br><span class="line">frame variable obj</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<ul>
+<li>不加参数：查看当前栈帧中的所有局部变量</li>
+<li>加变量名：查看指定变量的值</li>
+</ul>
+<hr>
+<h3 id="print"><a href="#print" class="headerlink" title="print"></a><code>print</code></h3><p>打印表达式值。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">print x</span><br><span class="line">print a + b</span><br><span class="line">print obj.member</span><br></pre></td></tr></table></figure>
+
+<p>常用缩写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p x</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p><code>print</code> 比 <code>frame variable</code> 更灵活，可以直接计算表达式。</p>
+<hr>
+<h3 id="expr"><a href="#expr" class="headerlink" title="expr"></a><code>expr</code></h3><p>求值表达式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">expr x</span><br><span class="line">expr a + b</span><br><span class="line">expr obj.member</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p><code>expr</code> 和 <code>print</code> 很接近，但更强调“执行一个表达式并求值”。</p>
+<hr>
+<h2 id="5-线程相关命令"><a href="#5-线程相关命令" class="headerlink" title="5. 线程相关命令"></a>5. 线程相关命令</h2><h3 id="thread-list"><a href="#thread-list" class="headerlink" title="thread list"></a><code>thread list</code></h3><p>查看线程列表。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread list</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="thread-select"><a href="#thread-select" class="headerlink" title="thread select"></a><code>thread select</code></h3><p>切换当前线程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread select 2</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于将调试焦点切换到指定线程。</p>
+<hr>
+<h3 id="thread-backtrace"><a href="#thread-backtrace" class="headerlink" title="thread backtrace"></a><code>thread backtrace</code></h3><p>查看当前线程调用栈。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread backtrace</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-寄存器与内存命令"><a href="#6-寄存器与内存命令" class="headerlink" title="6. 寄存器与内存命令"></a>6. 寄存器与内存命令</h2><h3 id="register-read"><a href="#register-read" class="headerlink" title="register read"></a><code>register read</code></h3><p>查看寄存器内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">register read</span><br><span class="line">register read rip rsp rbp</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>调试汇编代码、分析崩溃现场时非常有用。</p>
+<hr>
+<h3 id="memory-read"><a href="#memory-read" class="headerlink" title="memory read"></a><code>memory read</code></h3><p>读取指定地址的内存内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">memory read 0x7fffffffe000</span><br><span class="line">memory read --format x --size 8 --count 4 0x7fffffffe000</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于查看某块内存中的数据内容。</p>
+<hr>
+<h2 id="7-源码与反汇编命令"><a href="#7-源码与反汇编命令" class="headerlink" title="7. 源码与反汇编命令"></a>7. 源码与反汇编命令</h2><h3 id="list"><a href="#list" class="headerlink" title="list"></a><code>list</code></h3><p>查看源码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">list</span><br><span class="line">list main</span><br><span class="line">list test.cpp:20</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于显示当前行附近源码，或者指定函数、指定文件行号处的源码。</p>
+<hr>
+<h3 id="disassemble"><a href="#disassemble" class="headerlink" title="disassemble"></a><code>disassemble</code></h3><p>查看反汇编代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">disassemble</span><br><span class="line">disassemble --name main</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于查看当前函数或指定函数对应的汇编指令。</p>
+<hr>
+<h2 id="8-目标与模块信息命令"><a href="#8-目标与模块信息命令" class="headerlink" title="8. 目标与模块信息命令"></a>8. 目标与模块信息命令</h2><h3 id="target-create"><a href="#target-create" class="headerlink" title="target create"></a><code>target create</code></h3><p>创建调试目标。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">target create ./a.out</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="target-list"><a href="#target-list" class="headerlink" title="target list"></a><code>target list</code></h3><p>查看当前调试目标。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">target list</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="image-list"><a href="#image-list" class="headerlink" title="image list"></a><code>image list</code></h3><p>查看当前已加载模块。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">image list</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>常用于查看程序加载了哪些动态库或模块。</p>
+<hr>
+<h2 id="9-帮助与命令查询命令"><a href="#9-帮助与命令查询命令" class="headerlink" title="9. 帮助与命令查询命令"></a>9. 帮助与命令查询命令</h2><h3 id="help"><a href="#help" class="headerlink" title="help"></a><code>help</code></h3><p>查看 LLDB 帮助总览。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>会列出 LLDB 支持的主要命令和命令分类。</p>
+<hr>
+<h3 id="help-命令名"><a href="#help-命令名" class="headerlink" title="help 命令名"></a><code>help 命令名</code></h3><p>查看某个命令的详细帮助。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint</span><br><span class="line">help run</span><br><span class="line">help thread</span><br><span class="line">help process</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>用于查看该命令下面支持哪些子命令或参数。</p>
+<hr>
+<h3 id="apropos-关键字"><a href="#apropos-关键字" class="headerlink" title="apropos 关键字"></a><code>apropos 关键字</code></h3><p>按关键字搜索相关命令。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apropos breakpoint</span><br><span class="line">apropos watchpoint</span><br><span class="line">apropos register</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>当你只记得某个主题，但不记得具体命令名时，这个命令很有用。</p>
+<hr>
+<h2 id="10-如果想看-breakpoint-后面可以跟哪些命令，应该怎么做"><a href="#10-如果想看-breakpoint-后面可以跟哪些命令，应该怎么做" class="headerlink" title="10. 如果想看 breakpoint 后面可以跟哪些命令，应该怎么做"></a>10. 如果想看 <code>breakpoint</code> 后面可以跟哪些命令，应该怎么做</h2><p>最标准的方法是在 LLDB 内部输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>这条命令会显示 <code>breakpoint</code> 这个一级命令下面有哪些子命令，例如：</p>
+<ul>
+<li><code>breakpoint set</code></li>
+<li><code>breakpoint list</code></li>
+<li><code>breakpoint delete</code></li>
+<li><code>breakpoint enable</code></li>
+<li><code>breakpoint disable</code></li>
+<li><code>breakpoint modify</code></li>
+<li><code>breakpoint command</code></li>
+<li><code>breakpoint name</code></li>
+</ul>
+<p>也就是说，如果你想知道：</p>
+<blockquote>
+<p><code>breakpoint</code> 后面到底还能跟什么</p>
+</blockquote>
+<p>最直接的方法就是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="11-如果还想继续看某个子命令的参数"><a href="#11-如果还想继续看某个子命令的参数" class="headerlink" title="11. 如果还想继续看某个子命令的参数"></a>11. 如果还想继续看某个子命令的参数</h2><p>例如你已经知道有 <code>breakpoint set</code>，还想看它后面支持哪些参数，就继续输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint set</span><br></pre></td></tr></table></figure>
+
+<p>解释说明：</p>
+<p>这时会进一步显示 <code>breakpoint set</code> 支持的参数，例如：</p>
+<ul>
+<li><code>--name</code></li>
+<li><code>--file</code></li>
+<li><code>--line</code></li>
+<li><code>--address</code></li>
+<li><code>--condition</code></li>
+</ul>
+<p>例如常见写法有：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">breakpoint set --name main</span><br><span class="line">breakpoint set --file test.cpp --line 10</span><br><span class="line">breakpoint set --address 0x401234</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="12-更通用的查询规律"><a href="#12-更通用的查询规律" class="headerlink" title="12. 更通用的查询规律"></a>12. 更通用的查询规律</h2><p>以后如果你想看任何 LLDB 命令后面还能接什么，都可以按下面的规律查：</p>
+<h3 id="查看一级命令"><a href="#查看一级命令" class="headerlink" title="查看一级命令"></a>查看一级命令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help 命令名</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint</span><br><span class="line">help thread</span><br><span class="line">help process</span><br><span class="line">help target</span><br><span class="line">help frame</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看二级命令"><a href="#查看二级命令" class="headerlink" title="查看二级命令"></a>查看二级命令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help 命令名 子命令</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint set</span><br><span class="line">help thread backtrace</span><br><span class="line">help process launch</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="13-还可以使用-Tab-补全"><a href="#13-还可以使用-Tab-补全" class="headerlink" title="13. 还可以使用 Tab 补全"></a>13. 还可以使用 Tab 补全</h2><p>在很多 LLDB 环境下，输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">breakpoint </span><br></pre></td></tr></table></figure>
+
+<p>然后按 <strong>Tab</strong> 键，也可以看到可能的子命令补全提示。</p>
+<p>例如可能会提示：</p>
+<ul>
+<li><code>command</code></li>
+<li><code>delete</code></li>
+<li><code>disable</code></li>
+<li><code>enable</code></li>
+<li><code>list</code></li>
+<li><code>modify</code></li>
+<li><code>set</code></li>
+</ul>
+<p>因此，查询子命令时常见有两种方法：</p>
+<ol>
+<li><code>help breakpoint</code></li>
+<li>输入 <code>breakpoint</code> 后按 <code>Tab</code></li>
+</ol>
+<hr>
+<h2 id="14-最常用的一组-LLDB-内部命令"><a href="#14-最常用的一组-LLDB-内部命令" class="headerlink" title="14. 最常用的一组 LLDB 内部命令"></a>14. 最常用的一组 LLDB 内部命令</h2><p>如果只是先记住最核心的一批，可以优先掌握下面这些命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">run</span><br><span class="line">continue</span><br><span class="line">next</span><br><span class="line">step</span><br><span class="line">finish</span><br><span class="line">bt</span><br><span class="line">thread backtrace all</span><br><span class="line">frame variable</span><br><span class="line">print x</span><br><span class="line">breakpoint set --name main</span><br><span class="line">breakpoint list</span><br><span class="line">breakpoint delete 1</span><br><span class="line">thread list</span><br><span class="line">register read</span><br><span class="line">memory read 地址</span><br><span class="line">help</span><br><span class="line">help breakpoint</span><br><span class="line">help breakpoint set</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="15-总结"><a href="#15-总结" class="headerlink" title="15. 总结"></a>15. 总结</h2><p>LLDB 内部命令大致可以分为以下几类：</p>
+<ol>
+<li><strong>程序运行控制</strong>：如 <code>run</code>、<code>continue</code>、<code>next</code>、<code>step</code></li>
+<li><strong>断点管理</strong>：如 <code>breakpoint set</code>、<code>breakpoint list</code></li>
+<li><strong>调用栈与栈帧查看</strong>：如 <code>bt</code>、<code>frame info</code></li>
+<li><strong>变量查看与表达式求值</strong>：如 <code>frame variable</code>、<code>print</code>、<code>expr</code></li>
+<li><strong>线程管理</strong>：如 <code>thread list</code>、<code>thread backtrace all</code></li>
+<li><strong>寄存器与内存查看</strong>：如 <code>register read</code>、<code>memory read</code></li>
+<li><strong>帮助查询</strong>：如 <code>help</code>、<code>help breakpoint</code>、<code>apropos</code></li>
+</ol>
+<p>其中，如果想知道某个命令后面还能跟哪些子命令，最标准的方法是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help 命令名</span><br></pre></td></tr></table></figure>
+
+<p>如果想继续看更细的子命令参数，则使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">help 命令名 子命令</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">help breakpoint</span><br><span class="line">help breakpoint set</span><br></pre></td></tr></table></figure>
+
+<p>这就是查看 <code>breakpoint</code> 后续可用命令和参数的最直接方法。</p>
+<h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><p>除此之外，还可以开启core dump文件生成，通过生成的core文件判断代码崩溃的地方。<br>假设现在有如下错误代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Program will crash to generate a core dump.&quot;</span> &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span>* p = <span class="literal">nullptr</span>;</span><br><span class="line">    *p = <span class="number">42</span>;  <span class="comment">// 故意写空指针，触发段错误</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="使用-core-dump-文件"><a href="#使用-core-dump-文件" class="headerlink" title="使用 core dump 文件"></a>使用 core dump 文件</h1><p>具体的，开启core文件的方法如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">1. 临时开启当前 shell 的 core 文件大小限制</span></span><br><span class="line">ulimit -c unlimited</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看是否生效</span></span><br><span class="line">ulimit -c</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">如果输出是 unlimited，说明当前终端已经允许生成 core 文件</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">2. 查看 core 文件命名和保存位置</span></span><br><span class="line">cat /proc/sys/kernel/core_pattern</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">（1）. 结果是core或者core.%e.%p，则core文件生成在当前目录下</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">（2）. 结果以 | 开头，如</span></span><br><span class="line">|/usr/lib/systemd/systemd-coredump ...</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时可以通过下面的方法查看奔溃记录</span></span><br><span class="line">coredumpctl list</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看某个程序的 core</span></span><br><span class="line">coredumpctl info 程序名</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接用gdb调试</span></span><br><span class="line">coredumpctl gdb 程序名</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">（3）. 结果是这样</span></span><br><span class="line">|/usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -F%F -- %E</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">说明系统交给 apport 接管了，不一定直接在当前目录看到 core 文件。</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时需要临时关闭 apport，具体的操作如下：</span></span><br><span class="line">sudo systemctl stop apport</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">然后设置 core 文件名格式：</span></span><br><span class="line">sudo sysctl -w kernel.core_pattern=/tmp/core-%e-%p</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">再运行程序，崩溃后就会在 /tmp 下看到类似：</span></span><br><span class="line">/tmp/core-myprog-12345</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">3. 设置 core dump 永久开启</span></span><br><span class="line">echo &#x27;ulimit -c unlimited&#x27; &gt;&gt; ~/.bashrc</span><br><span class="line">source ~/.bashrc</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">4. 将core文件生成保存到某一个目录中：</span></span><br><span class="line">sudo sysctl -w kernel.core_pattern=/tmp/core-%e-%p</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">永久保存：</span></span><br><span class="line">sudo sh -c &#x27;echo &quot;kernel.core_pattern=/tmp/core-%e-%p&quot; &gt;&gt; /etc/sysctl.conf&#x27;</span><br><span class="line">sudo sysctl -p</span><br></pre></td></tr></table></figure>
+<p>上面讲的都是一些可用的原理，在我的电脑上，具体的使用如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ sudo sh -c &#x27;echo &quot;kernel.core_pattern=/tmp/core-%e-%p&quot; &gt;&gt; /etc/sysctl.conf&#x27;</span><br><span class="line">[sudo] password for dushuai: </span><br><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ sudo sysctl -p</span><br><span class="line">kernel.core_pattern = /tmp/core-%e-%p</span><br><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ ./a.out </span><br><span class="line">Program will crash to generate a core dump.</span><br><span class="line">Segmentation fault (core dumped)</span><br><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ ls /tmp/</span><br><span class="line">cc4MjyNh.s  code-81b57c91-8feb-4004-9641-86c9f779ddfc</span><br><span class="line">ccBGtwv6.s  core-a.out-39922</span><br><span class="line">ccEb7OhH.s  mcp-OqoaSw</span><br><span class="line">ccLnVeVg.s  snap-private-tmp</span><br><span class="line">ccQJAkHJ.s  systemd-private-0471f166e38b41adb09f341018f1ecd1-systemd-logind.service-7TmAh5</span><br><span class="line">ccqPNeLu.s  systemd-private-0471f166e38b41adb09f341018f1ecd1-systemd-resolved.service-D5QlLa</span><br><span class="line">cct8moKz.s  systemd-private-0471f166e38b41adb09f341018f1ecd1-systemd-timesyncd.service-wAIE8O</span><br><span class="line">ccu3YjDS.s</span><br><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$</span><br></pre></td></tr></table></figure>
+<p>可以看到，通过设置 core dump 文件的保存路径，core文件被保存在了&#x2F;tmp目录下，即这里的core-a.out-39922文件，通过lldb去调试可执行文件，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ lldb -b -o run -k bt ./a.out</span><br><span class="line">(lldb) target create &quot;./a.out&quot;</span><br><span class="line">Current executable set to &#x27;/home/dushuai/projects/llvm/study/a.out&#x27; (x86_64).</span><br><span class="line">(lldb) run</span><br><span class="line">Program will crash to generate a core dump.</span><br><span class="line">Process 60431 launched: &#x27;/home/dushuai/projects/llvm/study/a.out&#x27; (x86_64)</span><br><span class="line">Process 60431 stopped</span><br><span class="line">* thread #1, name = &#x27;a.out&#x27;, stop reason = signal SIGSEGV: address not mapped to object (fault address=0x0)</span><br><span class="line">       frame #0: 0x00005555555567bd a.out`main + 61</span><br><span class="line">a.out`main:</span><br><span class="line"><span class="meta prompt_">-&gt; </span><span class="language-bash"> 0x5555555567bd &lt;+61&gt;: movl   <span class="variable">$0x2a</span>, (%rax)</span></span><br><span class="line">    0x5555555567c3 &lt;+67&gt;: xorl   %eax, %eax</span><br><span class="line">    0x5555555567c5 &lt;+69&gt;: addq   $0x10, %rsp</span><br><span class="line">    0x5555555567c9 &lt;+73&gt;: popq   %rbp</span><br><span class="line">(lldb) bt</span><br><span class="line">* thread #1, name = &#x27;a.out&#x27;, stop reason = signal SIGSEGV: address not mapped to object (fault address=0x0)</span><br><span class="line">   * frame #0: 0x00005555555567bd a.out`main + 61</span><br><span class="line">     frame #1: 0x00007ffff7a2a1ca libc.so.6`__libc_start_call_main(main=(a.out`main), argc=1, argv=0x00007fffffffdb58) at libc_start_call_main.h:58:16</span><br><span class="line">     frame #2: 0x00007ffff7a2a28b libc.so.6`__libc_start_main_impl(main=(a.out`main), argc=1, argv=0x00007fffffffdb58, init=&lt;unavailable&gt;, fini=&lt;unavailable&gt;, rtld_fini=&lt;unavailable&gt;, stack_end=0x00007fffffffdb48) at libc-start.c:360:3</span><br><span class="line">     frame #3: 0x00005555555566e5 a.out`_start + 37</span><br><span class="line">(lldb) </span><br></pre></td></tr></table></figure>
+<p>可以看到，这个调试信息可以分为几个部分：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">1. 执行的命令</span></span><br><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ lldb -b -o run -k bt ./a.out</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">2. 调试的信息</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">lldb 将 a.out 作为调试目标，架构是 x86_64 ， 目前还是只是加载了，并没有开始调试，意思是：此时可以设置 lldb 调试器的相关设置以及加载目标文件前执行一条命令/脚本</span></span><br><span class="line">(lldb) target create &quot;./a.out&quot;</span><br><span class="line">Current executable set to &#x27;/home/dushuai/projects/llvm/study/a.out&#x27; (x86_64).</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">3. 开始运行调试器，这个进程的 PID 就是 60431</span></span><br><span class="line">(lldb) run</span><br><span class="line">Program will crash to generate a core dump.</span><br><span class="line">Process 60431 launched: &#x27;/home/dushuai/projects/llvm/study/a.out&#x27; (x86_64)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">4. 程序卡住了：这个进程没有正常结束，而是因为 SIGSEGV（段错误） 停下来了，fault address=0x0表示方为了空地址，也就是空指针</span></span><br><span class="line">Process 60431 stopped</span><br><span class="line">* thread #1, name = &#x27;a.out&#x27;, stop reason = signal SIGSEGV: address not mapped to object (fault address=0x0)</span><br><span class="line">       frame #0: 0x00005555555567bd a.out`main + 61</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">这段汇编代码，说明崩溃发生在 main 函数中中，偏移量为 +61 的地方，也就是汇编代码：movl   <span class="variable">$0x2a</span>, (%rax)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">这句汇编代码：将整数 0x2a（十进制 42）写到 rax 指向的内存地址里，这里的 rax 指向的地址是空地址，所以出现段错误</span></span><br><span class="line">a.out`main:</span><br><span class="line"><span class="meta prompt_">-&gt; </span><span class="language-bash"> 0x5555555567bd &lt;+61&gt;: movl   <span class="variable">$0x2a</span>, (%rax)</span></span><br><span class="line">    0x5555555567c3 &lt;+67&gt;: xorl   %eax, %eax</span><br><span class="line">    0x5555555567c5 &lt;+69&gt;: addq   $0x10, %rsp</span><br><span class="line">    0x5555555567c9 &lt;+73&gt;: popq   %rbp</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">5. 通过 bt 命令打印当前的调用栈</span></span><br><span class="line">(lldb) bt</span><br><span class="line">* thread #1, name = &#x27;a.out&#x27;, stop reason = signal SIGSEGV: address not mapped to object (fault address=0x0)</span><br><span class="line">   * frame #0: 0x00005555555567bd a.out`main + 61</span><br><span class="line">     frame #1: 0x00007ffff7a2a1ca libc.so.6`__libc_start_call_main(main=(a.out`main), argc=1, argv=0x00007fffffffdb58) at libc_start_call_main.h:58:16</span><br><span class="line">     frame #2: 0x00007ffff7a2a28b libc.so.6`__libc_start_main_impl(main=(a.out`main), argc=1, argv=0x00007fffffffdb58, init=&lt;unavailable&gt;, fini=&lt;unavailable&gt;, rtld_fini=&lt;unavailable&gt;, stack_end=0x00007fffffffdb48) at libc-start.c:360:3</span><br><span class="line">     frame #3: 0x00005555555566e5 a.out`_start + 37</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">这里的 thread <span class="comment">#1 表示是进程1</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">frame <span class="comment">#0: 0x00005555555567bd a.out`main + 61 这是当前出错位置，也就是最直接的崩溃点</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">frame <span class="comment">#1: 0x00007ffff7a2a1ca libc.so.6`__libc_start_call_main(main=(a.out`main), argc=1, argv=0x00007fffffffdb58) at libc_start_call_main.h:58:16  表明这是C库在调用 main 函数</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">frame <span class="comment">#2: 0x00007ffff7a2a28b libc.so.6`__libc_start_main_impl(main=(a.out`main), argc=1, argv=0x00007fffffffdb58, init=&lt;unavailable&gt;, fini=&lt;unavailable&gt;, rtld_fini=&lt;unavailable&gt;, stack_end=0x00007fffffffdb48) at libc-start.c:360:3  更底层的调用逻辑</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">frame <span class="comment">#3: 0x00005555555566e5 a.out`_start + 37  这个是程序的入口_start，操作西永加载程序后最先进入的地方，之后才会调用 libc，在调用 main</span></span></span><br></pre></td></tr></table></figure>
+<p>通过上面的分析，可以确定，这是因为 rax 指向的地址为空地址造成的，可以通过命令确定：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">(lldb) register read</span><br><span class="line">General Purpose Registers:</span><br><span class="line">       rax = 0x0000000000000000</span><br><span class="line">       rbx = 0x00007fffffffdb58</span><br><span class="line">       rcx = 0x0000000000000008</span><br><span class="line">       rdx = 0x000055555555a2a0</span><br><span class="line">       rdi = 0x00007fffffffd9b8</span><br><span class="line">       rsi = 0x0000000000000000</span><br><span class="line">       rbp = 0x00007fffffffda30</span><br><span class="line">       rsp = 0x00007fffffffda20</span><br><span class="line">        r8 = 0x00007fffffffd968</span><br><span class="line">        r9 = 0x0000000000000410</span><br><span class="line">       r10 = 0x00007ffff7a0edb8  </span><br><span class="line">       r11 = 0x00007ffff7a857f0  libc.so.6`__GI__IO_fflush at iofflush.c:32:1</span><br><span class="line">       r12 = 0x0000000000000001</span><br><span class="line">       r13 = 0x0000000000000000</span><br><span class="line">       r14 = 0x00005555555587d8  a.out`__fini</span><br><span class="line">       r15 = 0x00007ffff7ffd000  _rtld_global</span><br><span class="line">       rip = 0x00005555555567bd  a.out`main + 61</span><br><span class="line">    rflags = 0x0000000000010202</span><br><span class="line">        cs = 0x0000000000000033</span><br><span class="line">        fs = 0x0000000000000000</span><br><span class="line">        gs = 0x0000000000000000</span><br><span class="line">        ss = 0x000000000000002b</span><br><span class="line">   fs_base = 0x00007ffff7d59740</span><br><span class="line">   gs_base = 0x0000000000000000</span><br><span class="line">        ds = 0x0000000000000000</span><br><span class="line">        es = 0x0000000000000000</span><br><span class="line"></span><br><span class="line">(lldb) </span><br></pre></td></tr></table></figure>
+<p>可以看到，rax 指向的地址确实是 0x0，即当前要访问的内存地址是空地址。</p>
+<p>rax 是一个寄存器，这个值来自于程序中的变量、临时值或地址的计算结果，所以 rax&#x3D;0x0 表示：</p>
+<ol>
+<li>某个 C&#x2F;C++ 指针是 nullptr</li>
+<li>某个地址计算结果变成了0</li>
+<li>对象指针无效，变成了空地址</li>
+</ol>
+<p>通过 <code>0x5555555567bd &lt;+61&gt;: movl   $0x2a, (%rax)</code> 可以确定，这是一次空指针写操作。但是，此时还只能确定“直接原因”，即程序在向空地址写入数据；还需要继续分析“根本原因”，也就是：为什么 rax 的值会是 0。</p>
+<p>从调用栈出发，可以发现崩溃点发生在 main 函数中，所以问题可能出现在 main 函数中。</p>
+<p>为此，可以查看崩溃点前后的指令逻辑，如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">(lldb) disassemble --frame</span><br><span class="line">a.out`main:</span><br><span class="line">    0x555555556780 &lt;+0&gt;:  pushq  %rbp</span><br><span class="line">    0x555555556781 &lt;+1&gt;:  movq   %rsp, %rbp</span><br><span class="line">    0x555555556784 &lt;+4&gt;:  subq   $0x10, %rsp</span><br><span class="line">    0x555555556788 &lt;+8&gt;:  movl   $0x0, -0x4(%rbp)</span><br><span class="line">    0x55555555678f &lt;+15&gt;: movq   0x2252(%rip), %rdi</span><br><span class="line">    0x555555556796 &lt;+22&gt;: leaq   -0x1ba9(%rip), %rsi</span><br><span class="line">    0x55555555679d &lt;+29&gt;: callq  0x5555555567d0 ; std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; std::__1::operator&lt;&lt;[abi:sqe230000]&lt;std::__1::char_traits&lt;char&gt;&gt;(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;, char const*)</span><br><span class="line">    0x5555555567a2 &lt;+34&gt;: movq   %rax, %rdi</span><br><span class="line">    0x5555555567a5 &lt;+37&gt;: leaq   0x84(%rip), %rsi ; std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; std::__1::endl[abi:sqe230000]&lt;char, std::__1::char_traits&lt;char&gt;&gt;(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;)</span><br><span class="line">    0x5555555567ac &lt;+44&gt;: callq  0x555555556810 ; std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;::operator&lt;&lt;[abi:sqe230000](std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; (*)(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;))</span><br><span class="line">    0x5555555567b1 &lt;+49&gt;: movq   $0x0, -0x10(%rbp)</span><br><span class="line">    0x5555555567b9 &lt;+57&gt;: movq   -0x10(%rbp), %rax</span><br><span class="line"><span class="meta prompt_">-&gt; </span><span class="language-bash"> 0x5555555567bd &lt;+61&gt;: movl   <span class="variable">$0x2a</span>, (%rax)</span></span><br><span class="line">    0x5555555567c3 &lt;+67&gt;: xorl   %eax, %eax</span><br><span class="line">    0x5555555567c5 &lt;+69&gt;: addq   $0x10, %rsp</span><br><span class="line">    0x5555555567c9 &lt;+73&gt;: popq   %rbp</span><br><span class="line">    0x5555555567ca &lt;+74&gt;: retq   </span><br><span class="line">(lldb) </span><br></pre></td></tr></table></figure>
+<p>此时重点看的是，rax 是在那条指令中被设置为 0 的？来自于哪个寄存器？rax 是从栈上某个局部变量加载过来的，还是函数返回值？</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">    0x5555555567b1 &lt;+49&gt;: movq   $0x0, -0x10(%rbp)</span><br><span class="line">    0x5555555567b9 &lt;+57&gt;: movq   -0x10(%rbp), %rax</span><br><span class="line"><span class="meta prompt_">-&gt; </span><span class="language-bash"> 0x5555555567bd &lt;+61&gt;: movl   <span class="variable">$0x2a</span>, (%rax)</span></span><br><span class="line">    0x5555555567c3 &lt;+67&gt;: xorl   %eax, %eax</span><br></pre></td></tr></table></figure>
+<p>这部分内容说明，在栈上某个变量保存了一个指针，然后将其读入到 rax 中，并且解引用。其中<code> movq   $0x0, -0x10(%rbp)</code>表示将常数0写入到当前函数栈帧中的某个局部变量位置，然后通过<code>movq   -0x10(%rbp), %rax</code>将这个值写入到 rax 中。<br>由此，可以进一步确定，本例中的 rax 是由程序显式地将一个局部指针赋值为0。</p>
+<p>如果看到下面内容，则说明是通过函数返回值传递的</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">callq some_function</span><br><span class="line">movq %rax, -0x8(%rbp)</span><br><span class="line">movq -0x8(%rbp), %rax</span><br><span class="line">movl $0x2a, (%rax)</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://firstHeart09.github.io">firstHeart09</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/">https://firstheart09.github.io/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://firstHeart09.github.io" target="_blank">我的编译日志</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/lldb/">lldb</a><a class="post-meta__tags" href="/tags/%E8%B0%83%E8%AF%95%E5%99%A8/">调试器</a></div><div class="post-share"><div class="social-share" data-image="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/12/x86%E6%9E%B6%E6%9E%84%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B4%E6%98%8E/" title="x86架构下常见寄存器使用说明"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">x86架构下常见寄存器使用说明</div></div><div class="info-2"><div class="info-item-1">x86-64 架构下的寄存器使用分析本文从调试与错误定位的角度，总结 x86-64 架构下常见寄存器的作用、函数调用中的寄存器使用方式，以及在 LLDB&#x2F;GDB 中如何结合寄存器信息分析程序崩溃问题。  1. 什么是寄存器寄存器是 CPU 内部的一组高速存储单元，用于暂时保存：  运算数据 内存地址 函数参数 函数返回值 栈位置 当前执行位置  与内存相比，寄存器访问速度更快，因此 CPU 在执行指令时，大量操作都会围绕寄存器展开。 例如下面这两条指令： 12movq   -0x10(%rbp), %raxmovl   $0x2a, (%rax)  表示先从栈帧中读取一个地址到寄存器 rax，再向 rax 指向的内存地址写入整数 42。  2. x86 与 x86-64 的区别通常：  x86 表示 32 位架构 x86-64（或 amd64）表示 64 位架构  两者寄存器名称类似，只是位宽不同。例如：  32 位：eax 64 位：rax  在 x86-64 下，常见寄存器有：  rax rbx rcx rdx rsi rdi rbp rsp rip r8 ~ r1...</div></div></div></a><a class="pagination-related" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">编译器中间表示</div></div><div class="info-2"><div class="info-item-1">在整个编译流程中，存在多种中间表示。如GCC编译器的中间表示可以有以下几个阶段：GENERIC、GIMPLE、Tree SSA和RTL；在llvm中存在llvm IR，需要注意的是，在llvm IR中，每一个寄存器（变量）一旦被赋值，就不能再次被赋值，这就是静态单赋值最核心的要点。 举例说明假设有如下C语言代码： 12x = 1;x = x + 1; // x 被修改了 对应的SSA中间表示如下： IR12x_1 = 1;x_2 = x_1 + 1; SSA又叫静态单赋值，其核心思想是：给每一次赋值产生一个新的变量版本，使得每一个版本只定义一次。 此时，每一个use使用都能明确对应到某一个定义上，数据流关系很清楚。为了能够明确这个数据流，在这里会使用φ函数节点，完成这个处理。φ函数节点可以理解成：控制流汇合处的值选择器，该节点不是运行时真的去调用某个函数，而是让编译器在IR里面表达：  如果程序从某个前驱块中走过来的，就选择那个前驱块里对应版本的值。 φ不是机器指令，而是IR层的伪操作，它的主要作用是让SSA在分支合流和循环回边处仍然成立，同时让常量传播、死代码消除和值范围分析这...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81ODg2NC8zNTMyNg=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">firstHeart09</div><div class="author-info-description">一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8-lldb-%E6%97%B6%E5%8F%AF%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">1.</span> <span class="toc-text">启动 lldb 时可用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.</span> <span class="toc-text">1. 基本用法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%99%84%E5%8A%A0%E5%88%B0%E8%BF%9B%E7%A8%8B%EF%BC%88%E4%BD%BF%E7%94%A8-lldb-%E8%B7%9F%E8%B8%AA%E8%BF%99%E4%B8%AA%E8%BF%9B%E7%A8%8B%E3%80%81ATTACHING%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">2. 附加到进程（使用 lldb 跟踪这个进程、ATTACHING）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%8C%89%E8%BF%9B%E7%A8%8B%E5%90%8D%E9%99%84%E5%8A%A0"><span class="toc-number">1.2.1.</span> <span class="toc-text">（1）按进程名附加</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E6%8C%89%E8%BF%9B%E7%A8%8B%E5%8F%B7%E9%99%84%E5%8A%A0"><span class="toc-number">1.2.2.</span> <span class="toc-text">（2）按进程号附加</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E7%AD%89%E5%BE%85%E8%BF%9B%E7%A8%8B%E5%90%AF%E5%8A%A8%E5%90%8E%E9%99%84%E5%8A%A0"><span class="toc-number">1.2.3.</span> <span class="toc-text">（3）等待进程启动后附加</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%90%AF%E5%8A%A8%E6%97%B6%E8%87%AA%E5%8A%A8%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%EF%BC%88COMMANDS%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">3. 启动时自动执行命令（COMMANDS）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%89%B9%E5%A4%84%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">（1）批处理模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E5%8A%A0%E8%BD%BD%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%89%8D%E6%89%A7%E8%A1%8C%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.2.</span> <span class="toc-text">（2）加载目标文件前执行一条命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E5%8A%A0%E8%BD%BD%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%90%8E%E6%89%A7%E8%A1%8C%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.3.</span> <span class="toc-text">（3）加载目标文件后执行一条命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%884%EF%BC%89%E7%A8%8B%E5%BA%8F%E5%B4%A9%E6%BA%83%E6%97%B6%E6%89%A7%E8%A1%8C%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.4.</span> <span class="toc-text">（4）程序崩溃时执行一条命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%885%EF%BC%89%E5%8A%A0%E8%BD%BD%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%89%8D%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.3.5.</span> <span class="toc-text">（5）加载目标文件前执行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%886%EF%BC%89%E5%8A%A0%E8%BD%BD%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%90%8E%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.3.6.</span> <span class="toc-text">（6）加载目标文件后执行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%887%EF%BC%89%E7%A8%8B%E5%BA%8F%E5%B4%A9%E6%BA%83%E6%97%B6%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.3.7.</span> <span class="toc-text">（7）程序崩溃时执行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%888%EF%BC%89%E5%AE%89%E9%9D%99%E6%A8%A1%E5%BC%8F%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.8.</span> <span class="toc-text">（8）安静模式执行命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%889%EF%BC%89%E6%98%AF%E5%90%A6%E8%AF%BB%E5%8F%96-lldbinit"><span class="toc-number">1.3.9.</span> <span class="toc-text">（9）是否读取 .lldbinit</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%B8%B8%E8%A7%84%E9%80%89%E9%A1%B9%EF%BC%88OPTIONS%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">4. 常规选项（OPTIONS）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%8C%87%E5%AE%9A%E6%9E%B6%E6%9E%84"><span class="toc-number">1.4.1.</span> <span class="toc-text">（1）指定架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E6%8C%87%E5%AE%9A-core-%E6%96%87%E4%BB%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">（2）指定 core 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E6%8C%87%E5%AE%9A%E8%B0%83%E8%AF%95%E6%96%87%E4%BB%B6"><span class="toc-number">1.4.3.</span> <span class="toc-text">（3）指定调试文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%884%EF%BC%89%E6%89%93%E5%BC%80%E5%A4%96%E9%83%A8%E7%BC%96%E8%BE%91%E5%99%A8"><span class="toc-number">1.4.4.</span> <span class="toc-text">（4）打开外部编辑器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%885%EF%BC%89%E6%9F%A5%E7%9C%8B%E5%B8%AE%E5%8A%A9%E4%BF%A1%E6%81%AF"><span class="toc-number">1.4.5.</span> <span class="toc-text">（5）查看帮助信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%886%EF%BC%89%E6%9F%A5%E7%9C%8B%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">1.4.6.</span> <span class="toc-text">（6）查看版本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%887%EF%BC%89%E5%85%B3%E9%97%AD%E5%BD%A9%E8%89%B2%E8%BE%93%E5%87%BA"><span class="toc-number">1.4.7.</span> <span class="toc-text">（7）关闭彩色输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-REPL-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.5.</span> <span class="toc-text">5. REPL 模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E5%90%AF%E5%8A%A8-REPL"><span class="toc-number">1.5.1.</span> <span class="toc-text">（1）启动 REPL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E6%8C%87%E5%AE%9A-REPL-%E8%AF%AD%E8%A8%80"><span class="toc-number">1.5.2.</span> <span class="toc-text">（2）指定 REPL 语言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E5%B8%A6%E5%8F%82%E6%95%B0%E5%90%AF%E5%8A%A8-REPL"><span class="toc-number">1.5.3.</span> <span class="toc-text">（3）带参数启动 REPL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%84%9A%E6%9C%AC%E6%94%AF%E6%8C%81%EF%BC%88SCRIPTING%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">6. 脚本支持（SCRIPTING）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%8C%87%E5%AE%9A%E8%84%9A%E6%9C%AC%E8%AF%AD%E8%A8%80"><span class="toc-number">1.6.1.</span> <span class="toc-text">（1）指定脚本语言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E6%9F%A5%E7%9C%8B-Python-%E8%B7%AF%E5%BE%84"><span class="toc-number">1.6.2.</span> <span class="toc-text">（2）查看 Python 路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E6%89%93%E5%8D%B0%E8%84%9A%E6%9C%AC%E8%A7%A3%E9%87%8A%E5%99%A8%E4%BF%A1%E6%81%AF"><span class="toc-number">1.6.3.</span> <span class="toc-text">（3）打印脚本解释器信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%8F%82%E6%95%B0%E5%88%86%E9%9A%94%E7%AC%A6-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.7.</span> <span class="toc-text">7. 参数分隔符 -- 的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%B8%B8%E8%A7%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.8.</span> <span class="toc-text">8. 常见示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E8%B0%83%E8%AF%95%E4%B8%80%E4%B8%AA%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.8.1.</span> <span class="toc-text">（1）调试一个程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E9%99%84%E5%8A%A0%E5%88%B0%E6%9F%90%E4%B8%AA%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.8.2.</span> <span class="toc-text">（2）附加到某个进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E6%8C%89%E8%BF%9B%E7%A8%8B%E5%90%8D%E9%99%84%E5%8A%A0%E5%B9%B6%E7%AD%89%E5%BE%85%E5%85%B6%E5%90%AF%E5%8A%A8"><span class="toc-number">1.8.3.</span> <span class="toc-text">（3）按进程名附加并等待其启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%884%EF%BC%89%E8%B0%83%E8%AF%95-core-%E6%96%87%E4%BB%B6"><span class="toc-number">1.8.4.</span> <span class="toc-text">（4）调试 core 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%885%EF%BC%89%E6%89%B9%E5%A4%84%E7%90%86%E8%BF%90%E8%A1%8C%E5%B9%B6%E6%89%93%E5%8D%B0%E6%A0%88"><span class="toc-number">1.8.5.</span> <span class="toc-text">（5）批处理运行并打印栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%886%EF%BC%89%E5%8A%A0%E8%BD%BD%E5%89%8D%E5%90%8E%E5%88%86%E5%88%AB%E6%89%A7%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.8.6.</span> <span class="toc-text">（6）加载前后分别执行脚本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">1.9.</span> <span class="toc-text">9. 总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lldb-%E5%86%85%E9%83%A8%E5%8F%AF%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">2.</span> <span class="toc-text">lldb 内部可用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%A8%8B%E5%BA%8F%E8%BF%90%E8%A1%8C%E6%8E%A7%E5%88%B6%E5%91%BD%E4%BB%A4"><span class="toc-number">2.1.</span> <span class="toc-text">1. 程序运行控制命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#run"><span class="toc-number">2.1.1.</span> <span class="toc-text">run</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#continue"><span class="toc-number">2.1.2.</span> <span class="toc-text">continue</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#next"><span class="toc-number">2.1.3.</span> <span class="toc-text">next</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#step"><span class="toc-number">2.1.4.</span> <span class="toc-text">step</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#finish"><span class="toc-number">2.1.5.</span> <span class="toc-text">finish</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#process-kill"><span class="toc-number">2.1.6.</span> <span class="toc-text">process kill</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#process-status"><span class="toc-number">2.1.7.</span> <span class="toc-text">process status</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%96%AD%E7%82%B9%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="toc-number">2.2.</span> <span class="toc-text">2. 断点相关命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#breakpoint-set"><span class="toc-number">2.2.1.</span> <span class="toc-text">breakpoint set</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#breakpoint-list"><span class="toc-number">2.2.2.</span> <span class="toc-text">breakpoint list</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#breakpoint-disable"><span class="toc-number">2.2.3.</span> <span class="toc-text">breakpoint disable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#breakpoint-enable"><span class="toc-number">2.2.4.</span> <span class="toc-text">breakpoint enable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#breakpoint-delete"><span class="toc-number">2.2.5.</span> <span class="toc-text">breakpoint delete</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%B0%83%E7%94%A8%E6%A0%88%E4%B8%8E%E6%A0%88%E5%B8%A7%E5%91%BD%E4%BB%A4"><span class="toc-number">2.3.</span> <span class="toc-text">3. 调用栈与栈帧命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bt"><span class="toc-number">2.3.1.</span> <span class="toc-text">bt</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#thread-backtrace-all"><span class="toc-number">2.3.2.</span> <span class="toc-text">thread backtrace all</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#frame-info"><span class="toc-number">2.3.3.</span> <span class="toc-text">frame info</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#frame-select"><span class="toc-number">2.3.4.</span> <span class="toc-text">frame select</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%8F%98%E9%87%8F%E6%9F%A5%E7%9C%8B%E5%91%BD%E4%BB%A4"><span class="toc-number">2.4.</span> <span class="toc-text">4. 变量查看命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#frame-variable"><span class="toc-number">2.4.1.</span> <span class="toc-text">frame variable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#print"><span class="toc-number">2.4.2.</span> <span class="toc-text">print</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#expr"><span class="toc-number">2.4.3.</span> <span class="toc-text">expr</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%BA%BF%E7%A8%8B%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="toc-number">2.5.</span> <span class="toc-text">5. 线程相关命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#thread-list"><span class="toc-number">2.5.1.</span> <span class="toc-text">thread list</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#thread-select"><span class="toc-number">2.5.2.</span> <span class="toc-text">thread select</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#thread-backtrace"><span class="toc-number">2.5.3.</span> <span class="toc-text">thread backtrace</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AF%84%E5%AD%98%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%91%BD%E4%BB%A4"><span class="toc-number">2.6.</span> <span class="toc-text">6. 寄存器与内存命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#register-read"><span class="toc-number">2.6.1.</span> <span class="toc-text">register read</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#memory-read"><span class="toc-number">2.6.2.</span> <span class="toc-text">memory read</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%BA%90%E7%A0%81%E4%B8%8E%E5%8F%8D%E6%B1%87%E7%BC%96%E5%91%BD%E4%BB%A4"><span class="toc-number">2.7.</span> <span class="toc-text">7. 源码与反汇编命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#list"><span class="toc-number">2.7.1.</span> <span class="toc-text">list</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#disassemble"><span class="toc-number">2.7.2.</span> <span class="toc-text">disassemble</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E7%9B%AE%E6%A0%87%E4%B8%8E%E6%A8%A1%E5%9D%97%E4%BF%A1%E6%81%AF%E5%91%BD%E4%BB%A4"><span class="toc-number">2.8.</span> <span class="toc-text">8. 目标与模块信息命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#target-create"><span class="toc-number">2.8.1.</span> <span class="toc-text">target create</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#target-list"><span class="toc-number">2.8.2.</span> <span class="toc-text">target list</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#image-list"><span class="toc-number">2.8.3.</span> <span class="toc-text">image list</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B8%AE%E5%8A%A9%E4%B8%8E%E5%91%BD%E4%BB%A4%E6%9F%A5%E8%AF%A2%E5%91%BD%E4%BB%A4"><span class="toc-number">2.9.</span> <span class="toc-text">9. 帮助与命令查询命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#help"><span class="toc-number">2.9.1.</span> <span class="toc-text">help</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#help-%E5%91%BD%E4%BB%A4%E5%90%8D"><span class="toc-number">2.9.2.</span> <span class="toc-text">help 命令名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apropos-%E5%85%B3%E9%94%AE%E5%AD%97"><span class="toc-number">2.9.3.</span> <span class="toc-text">apropos 关键字</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%A6%82%E6%9E%9C%E6%83%B3%E7%9C%8B-breakpoint-%E5%90%8E%E9%9D%A2%E5%8F%AF%E4%BB%A5%E8%B7%9F%E5%93%AA%E4%BA%9B%E5%91%BD%E4%BB%A4%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E5%81%9A"><span class="toc-number">2.10.</span> <span class="toc-text">10. 如果想看 breakpoint 后面可以跟哪些命令，应该怎么做</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%A6%82%E6%9E%9C%E8%BF%98%E6%83%B3%E7%BB%A7%E7%BB%AD%E7%9C%8B%E6%9F%90%E4%B8%AA%E5%AD%90%E5%91%BD%E4%BB%A4%E7%9A%84%E5%8F%82%E6%95%B0"><span class="toc-number">2.11.</span> <span class="toc-text">11. 如果还想继续看某个子命令的参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E6%9B%B4%E9%80%9A%E7%94%A8%E7%9A%84%E6%9F%A5%E8%AF%A2%E8%A7%84%E5%BE%8B"><span class="toc-number">2.12.</span> <span class="toc-text">12. 更通用的查询规律</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%B8%80%E7%BA%A7%E5%91%BD%E4%BB%A4"><span class="toc-number">2.12.1.</span> <span class="toc-text">查看一级命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BA%8C%E7%BA%A7%E5%91%BD%E4%BB%A4"><span class="toc-number">2.12.2.</span> <span class="toc-text">查看二级命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E8%BF%98%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-Tab-%E8%A1%A5%E5%85%A8"><span class="toc-number">2.13.</span> <span class="toc-text">13. 还可以使用 Tab 补全</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E4%B8%80%E7%BB%84-LLDB-%E5%86%85%E9%83%A8%E5%91%BD%E4%BB%A4"><span class="toc-number">2.14.</span> <span class="toc-text">14. 最常用的一组 LLDB 内部命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-%E6%80%BB%E7%BB%93"><span class="toc-number">2.15.</span> <span class="toc-text">15. 总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-number">3.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-core-dump-%E6%96%87%E4%BB%B6"><span class="toc-number">4.</span> <span class="toc-text">使用 core dump 文件</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/x86%E6%9E%B6%E6%9E%84%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B4%E6%98%8E/" title="x86架构下常见寄存器使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="x86架构下常见寄存器使用说明"/></a><div class="content"><a class="title" href="/2026/04/12/x86%E6%9E%B6%E6%9E%84%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B4%E6%98%8E/" title="x86架构下常见寄存器使用说明">x86架构下常见寄存器使用说明</a><time datetime="2026-04-12T17:00:00.000Z" title="发表于 2026-04-12 17:00:00">2026-04-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/" title="lldb调试器"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="lldb调试器"/></a><div class="content"><a class="title" href="/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/" title="lldb调试器">lldb调试器</a><time datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 09:00:00">2026-04-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm后端"/></a><div class="content"><a class="title" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端">llvm后端</a><time datetime="2026-04-05T09:00:00.000Z" title="发表于 2026-04-05 09:00:00">2026-04-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="编译器中间表示"/></a><div class="content"><a class="title" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示">编译器中间表示</a><time datetime="2026-04-05T09:00:00.000Z" title="发表于 2026-04-05 09:00:00">2026-04-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" title="词法分析"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="词法分析"/></a><div class="content"><a class="title" href="/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" title="词法分析">词法分析</a><time datetime="2026-03-28T09:00:00.000Z" title="发表于 2026-03-28 09:00:00">2026-03-28</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By firstHeart09</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><script src="/"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.3"></script></div></div></body></html>

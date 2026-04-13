@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>词法分析 | 我的编译日志</title><meta name="author" content="firstHeart09"><meta name="copyright" content="firstHeart09"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="词法分析">
+<meta property="og:url" content="https://firstheart09.github.io/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="我的编译日志">
+<meta property="og:description" content="一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0">
+<meta property="article:published_time" content="2026-03-28T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-27T14:27:57.345Z">
+<meta property="article:author" content="firstHeart09">
+<meta property="article:tag" content="clang&#x2F;clang++">
+<meta property="article:tag" content="基础知识">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "词法分析",
+  "url": "https://firstheart09.github.io/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/",
+  "image": "https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0",
+  "datePublished": "2026-03-28T09:00:00.000Z",
+  "dateModified": "2026-03-27T14:27:57.345Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "firstHeart09",
+      "url": "https://firstHeart09.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://firstheart09.github.io/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: firstHeart09","link":"链接: ","source":"来源: 我的编译日志","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'FancyBox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '词法分析',
+  isHighlightShrink: true,
+  isToc: false,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">我的编译日志</span></a><a class="nav-page-title" href="/"><span class="site-name">词法分析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">词法分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-28T09:00:00.000Z" title="发表于 2026-03-28 09:00:00">2026-03-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-27T14:27:57.345Z" title="更新于 2026-03-27 14:27:57">2026-03-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8-%E5%89%8D%E7%AB%AF/">编译器/前端</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;该文章创建于&quot;,&quot;messageNext&quot;:&quot;天前，文章可能已经过时，请优先查看最新的文章.&quot;,&quot;postUpdate&quot;:&quot;2026-03-27 14:27:57&quot;}" hidden></div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://firstHeart09.github.io">firstHeart09</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/">https://firstheart09.github.io/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://firstHeart09.github.io" target="_blank">我的编译日志</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/clang-clang/">clang/clang++</a><a class="post-meta__tags" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a></div><div class="post-share"><div class="social-share" data-image="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">llvm后端</div></div><div class="info-2"><div class="info-item-1">llvm编译器可以分为前中后端。前端负责经历词法分析、语法分析、语义分析等生成与语言无关的中间表示llvm IR；中端也叫优化器，负责进行与语言、与后端目标架构无关的优化，比如说死代码消除、不可达代码删除、常量传播等，在这里通常会使用SSA（静态单赋值形式+φ节点方式），这样做的好处在于，任何变量只有一个变量名，不会出现声明和定义对应不上的问题；后端主要用于生成可以在目标架构上使用的汇编代码，在这里会经过以下过程：  DAG下译 –&gt; 将llvm IR转换为有向无环图（DAG图），便于后续进行图算法优化 –&gt; 不合法的DAG图（DAG中的部分指令目标架构不支持） DAG合法化 –&gt; DAG中都是llvm IR指令，但这些llvm IR指令不可能被目标架构全部支持，所以DAG合法化就需要替换这里面的不合法的指令 –&gt; 汇编代码或者机器代码  在整个DAG合法化过程中，通常包括以下步骤：  指令选择：将llvm IR替换成机器支持的机器DAG 指令调度：调整指令顺序，即从DAG展开成顺序执行的指令 基于SSA的机器代码优化：主要进行公共表达式合并或去除的操作 ...</div></div></div></a><a class="pagination-related" href="/2026/03/25/Binutils%E7%BC%96%E8%AF%91%E9%94%99%E8%AF%AF/" title="Binutils编译错误"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Binutils编译错误</div></div><div class="info-2"><div class="info-item-1">最近我在 Ubuntu 上编译 Binutils 2.42 时，gprofng 组件在链接阶段报错。最开始看上去只是一个普通的 undefined reference，但顺着错误一路排查下去，最后发现问题并不在最终链接命令本身，而在于一个中间生成文件异常，导致对应的目标文件成了“空壳对象文件”。这篇文章记录一下这次排查的完整思路，也顺便总结一套处理类似链接错误的方法。 错误现象123456789101112/usr/bin/ld: ./.libs/libgprofng.a(DbeSession.o): in function `DbeSession::ql_parse(char const*)&#x27;:$&#123;HOME&#125;/src/gnu/binutils-2.42/gprofng/src/DbeSession.cc:3010: undefined reference to `QL::Parser::Parser(QL::Result&amp;)&#x27;/usr/bin/ld: $&#123;HOME&#125;/src/gnu/binutils-2.42/...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-05</div><div class="info-item-2">llvm后端</div></div><div class="info-2"><div class="info-item-1">llvm编译器可以分为前中后端。前端负责经历词法分析、语法分析、语义分析等生成与语言无关的中间表示llvm IR；中端也叫优化器，负责进行与语言、与后端目标架构无关的优化，比如说死代码消除、不可达代码删除、常量传播等，在这里通常会使用SSA（静态单赋值形式+φ节点方式），这样做的好处在于，任何变量只有一个变量名，不会出现声明和定义对应不上的问题；后端主要用于生成可以在目标架构上使用的汇编代码，在这里会经过以下过程：  DAG下译 –&gt; 将llvm IR转换为有向无环图（DAG图），便于后续进行图算法优化 –&gt; 不合法的DAG图（DAG中的部分指令目标架构不支持） DAG合法化 –&gt; DAG中都是llvm IR指令，但这些llvm IR指令不可能被目标架构全部支持，所以DAG合法化就需要替换这里面的不合法的指令 –&gt; 汇编代码或者机器代码  在整个DAG合法化过程中，通常包括以下步骤：  指令选择：将llvm IR替换成机器支持的机器DAG 指令调度：调整指令顺序，即从DAG展开成顺序执行的指令 基于SSA的机器代码优化：主要进行公共表达式合并或去除的操作 ...</div></div></div></a><a class="pagination-related" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-05</div><div class="info-item-2">编译器中间表示</div></div><div class="info-2"><div class="info-item-1">在整个编译流程中，存在多种中间表示。如GCC编译器的中间表示可以有以下几个阶段：GENERIC、GIMPLE、Tree SSA和RTL；在llvm中存在llvm IR，需要注意的是，在llvm IR中，每一个寄存器（变量）一旦被赋值，就不能再次被赋值，这就是静态单赋值最核心的要点。 举例说明假设有如下C语言代码： 12x = 1;x = x + 1; // x 被修改了 对应的SSA中间表示如下： IR12x_1 = 1;x_2 = x_1 + 1; SSA又叫静态单赋值，其核心思想是：给每一次赋值产生一个新的变量版本，使得每一个版本只定义一次。 此时，每一个use使用都能明确对应到某一个定义上，数据流关系很清楚。为了能够明确这个数据流，在这里会使用φ函数节点，完成这个处理。φ函数节点可以理解成：控制流汇合处的值选择器，该节点不是运行时真的去调用某个函数，而是让编译器在IR里面表达：  如果程序从某个前驱块中走过来的，就选择那个前驱块里对应版本的值。 φ不是机器指令，而是IR层的伪操作，它的主要作用是让SSA在分支合流和循环回边处仍然成立，同时让常量传播、死代码消除和值范围分析这...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81ODg2NC8zNTMyNg=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">firstHeart09</div><div class="author-info-description">一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/x86%E6%9E%B6%E6%9E%84%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B4%E6%98%8E/" title="x86架构下常见寄存器使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="x86架构下常见寄存器使用说明"/></a><div class="content"><a class="title" href="/2026/04/12/x86%E6%9E%B6%E6%9E%84%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B4%E6%98%8E/" title="x86架构下常见寄存器使用说明">x86架构下常见寄存器使用说明</a><time datetime="2026-04-12T17:00:00.000Z" title="发表于 2026-04-12 17:00:00">2026-04-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/" title="lldb调试器"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="lldb调试器"/></a><div class="content"><a class="title" href="/2026/04/12/lldb%E8%B0%83%E8%AF%95%E5%99%A8/" title="lldb调试器">lldb调试器</a><time datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 09:00:00">2026-04-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm后端"/></a><div class="content"><a class="title" href="/2026/04/05/llvm%E7%BC%96%E8%AF%91%E5%99%A8%E5%90%8E%E7%AB%AF/" title="llvm后端">llvm后端</a><time datetime="2026-04-05T09:00:00.000Z" title="发表于 2026-04-05 09:00:00">2026-04-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="编译器中间表示"/></a><div class="content"><a class="title" href="/2026/04/05/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E4%B9%8BSSA/" title="编译器中间表示">编译器中间表示</a><time datetime="2026-04-05T09:00:00.000Z" title="发表于 2026-04-05 09:00:00">2026-04-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" title="词法分析"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="词法分析"/></a><div class="content"><a class="title" href="/2026/03/28/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" title="词法分析">词法分析</a><time datetime="2026-03-28T09:00:00.000Z" title="发表于 2026-03-28 09:00:00">2026-03-28</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By firstHeart09</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><script src="/"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.3"></script></div></div></body></html>
