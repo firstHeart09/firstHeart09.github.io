@@ -1,0 +1,341 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>我的编译日志 - 日拱一卒，功不唐捐</title><meta name="author" content="firstHeart09"><meta name="copyright" content="firstHeart09"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="我的编译日志">
+<meta property="og:url" content="https://firstheart09.github.io/index.html">
+<meta property="og:site_name" content="我的编译日志">
+<meta property="og:description" content="一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://firstheart09.github.io/img/cat01.jpg">
+<meta property="article:author" content="firstHeart09">
+<meta property="article:tag" content="LLVM，编译器，算法，编程学习，个人博客">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://firstheart09.github.io/img/cat01.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "我的编译日志",
+  "alternateName": [
+    "日拱一卒，功不唐捐",
+    "firstheart09.github.io"
+  ],
+  "url": "https://firstheart09.github.io/"
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://firstheart09.github.io/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: firstHeart09","link":"链接: ","source":"来源: 我的编译日志","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'FancyBox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '我的编译日志',
+  isHighlightShrink: true,
+  isToc: false,
+  pageType: 'home'
+}</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">我的编译日志</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">我的编译日志</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/2026/10/04/cmake-basics/" title="cmake学习"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="cmake学习"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/10/04/cmake-basics/" title="cmake学习">cmake学习</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-10-04T03:47:28.328Z" title="发表于 2026-10-04 11:47:28">2026-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%9E%84%E5%BB%BA/">工具与构建</a></span></div><div class="content">cmake是一个跨平台的项目构建工具，除了这个，Makefile也是一个项目构建工具（通过在Makefile文件中编写指令，然后通过make命令运行执行相关的命令生成最终的库文件或者可执行文件）。但是Makefile的编写过于复杂，且依赖于当前的编译平台，在解决文件依赖关系的时候容易出错。但是cmake刚好解决了这些问题，通过CMakeLists.txt文件，自动生成本地化的Makefile文件，最后用户只需要 make就可以。具体而言，整个流程可以总结如下：  编写CMakeLists.txt文件，然后通过cmake完成构建 自动生成本地化的Makefile文件，用户只需要make就可以  cmake的使用cmake中的注释分为单行注释以及注释块（多行注释） 12# 单行注释#[[  这里是多行注释 ]] 除此之外，还有以下基础命令： 12345678# 指令使用的 cmake 的最低版本cmake_minimum_required(VERSION 版本号)# 定义工程名称，可以指定工程的版本等信息project(项目名)# add_executable：生成一个可执行程序，源...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="入职前准备(一)之工具使用"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用">入职前准备(一)之工具使用</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-19T01:00:00.000Z" title="发表于 2026-04-19 09:00:00">2026-04-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%A5%E8%81%8C%E5%89%8D/">入职前</a></span></div><div class="content">在正式入职前，结合入职后的可能的工作安排，通过openai分析我需要学习的东西，并进行总结。 本次总结需要关注的点如下：  对 llvm 编译器有一个大概的了解，能够说明 llvm 编译器在每一个阶段做了什么？对常用的命令进行解释说明； 能够对简单代码对应的 llvm IR 文件进行分析解释，并能将其对应到汇编代码上； 除此之外，能够分清楚编译器的前后端关系之类的。  假设存在这样的测试文件 test.cc ： 1234567int add(int a, int b) &#123;    return a + b;&#125;int main() &#123;    return add(1, 2);&#125;  常用命令相关通过clang++命令进行编译反汇编，不进行链接，可以生成 llvm 编译器对应的中间表示，如下： 12345(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ lshello.cc  test.cc(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ clang++...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-readelf工具使用说明"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明">llvm-readelf工具使用说明</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-16T01:00:00.000Z" title="发表于 2026-04-16 09:00:00">2026-04-16</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/">工具说明</a></span></div><div class="content">在实际应用中，我们经常会查看可执行文件（目标文件）的文件头信息、段表、节区表、符号表、重定位表、动态链接信息以及不同平台特有的信息。 假设存在以下测试程序： 123456789#include &lt;iostream&gt;using namespace std;int main()&#123;    int x = 1;    cout &lt;&lt; &quot;Hello world: &quot; &lt;&lt; x &lt;&lt; endl;    return 0;&#125;  查看 ELF 文件头信息–file-header &#x2F; -h  显示文件的文件头信息123456789101112131415161718192021(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-readelf -h ./a.out ELF Header:  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00  Class:               ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-objdump工具使用说明"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明">llvm-objdump工具使用说明</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-13T01:00:00.000Z" title="发表于 2026-04-13 09:00:00">2026-04-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/">工具说明</a></span></div><div class="content">在日常的工具中，我们经常需要看程序的汇编代码，但是一般情况下，程序给我们提供的只是可执行文件或者目标文件，这类文件如果想要直接打开看其内容，是不现实的。所以，我们此时需要一些工具，去将这个文件翻译成我们能够读懂的语言，这就是 llvm-objdump 的具体使用场景。 假设现在存在如下测试代码 123456789#include &lt;iostream&gt;using namespace std;int main()&#123;    int x = 1;    cout &lt;&lt; &quot;Hello world: &quot; &lt;&lt; x &lt;&lt; endl;    return 0;&#125;  针对以上测试代码，使用clang++ hello.cc命令进行编译链接，生成最终的可执行文件。 llvm-objdump 常用命令详解这个命令可以用于查看和分析目标文件、可执行文件、库文件的工具，如objdump命令一样。这个命令可以用于查看以下信息：  反汇编机器指令，查看二进制代码对应的汇编内容； 查看各节区的原始内容 …  反汇编相关-d &...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="x86架构下常见寄存器使用说明"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明">x86架构下常见寄存器使用说明</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 17:00:00">2026-04-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/x86%E6%9E%B6%E6%9E%84/">x86架构</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/x86%E6%9E%B6%E6%9E%84/%E6%8C%87%E4%BB%A4%E9%9B%86/">指令集</a></span></div><div class="content">x86-64 架构下的寄存器使用分析从调试与错误定位的角度，总结 x86-64 架构下常见寄存器的作用、函数调用中的寄存器使用方式，以及在 LLDB&#x2F;GDB 中如何结合寄存器信息分析程序崩溃问题。  1. 什么是寄存器寄存器是 CPU 内部的一组高速存储单元，用于暂时保存：  运算数据 内存地址 函数参数 函数返回值 栈位置 当前执行位置  与内存相比，寄存器访问速度更快，因此 CPU 在执行指令时，大量操作都会围绕寄存器展开。 例如下面这两条指令： 12movq   -0x10(%rbp), %raxmovl   $0x2a, (%rax)  表示先从栈帧中读取一个地址到寄存器 rax，再向 rax 指向的内存地址写入整数 42。  2. x86 与 x86-64 的区别通常：  x86 表示 32 位架构 x86-64（或 amd64）表示 64 位架构  两者寄存器名称类似，只是位宽不同。例如：  32 位：eax 64 位：rax  在 x86-64 下，常见寄存器有：  rax rbx rcx rdx rsi rdi rbp rsp rip r8 ~ r15 ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2026/04/12/lldb-debugger/" title="lldb调试器"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="lldb调试器"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/12/lldb-debugger/" title="lldb调试器">lldb调试器</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-12T01:00:00.000Z" title="发表于 2026-04-12 09:00:00">2026-04-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/">工具说明</a></span></div><div class="content">在源程序的编写过程中，经常会出现各种错误，这些错误被称为 bug。针对这些错误，我们可以采用各种方法解决，比如说，我们在代码中添加各种各样的自定义输出，通过这些输出，可以详细观察程序的运行过程，进而确定问题出在哪里；或者说，可以通过调试器去关注程序中可能出错的点，进而确定问题所在。在 llvm 编译器中，lldb 就是这样的一个角色。 启动 lldb 时可用指令在这里，首先介绍一些 lldb 的常用命令：LLDB 是 LLVM 项目中的调试器，作用与 gdb 类似，常用于调试可执行程序、附加正在运行的进程、分析 core 文件以及查看调用栈、变量、线程和断点等信息。下面结合 lldb --help 的输出，对其常用命令行选项进行说明。 1. 基本用法1lldb [options]  其中，options 表示启动 LLDB 时可以附加的各种参数。常见用法如下： 1234lldblldb ./a.outlldb -p 1234lldb -c core.12345  解释说明：  lldb：直接启动 LLDB。 lldb ./a.out：加载可执行文件 a.out 进行调试。 lld...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2026/04/05/static-single-assignment/" title="编译器中间表示"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="编译器中间表示"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/04/05/static-single-assignment/" title="编译器中间表示">编译器中间表示</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-05T01:00:00.000Z" title="发表于 2026-04-05 09:00:00">2026-04-05</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8-%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/">编译器/中间表示</a></span></div><div class="content">SSA（静态单赋值）要求每个值只有一个定义。源程序中可反复赋值的变量，在 SSA 中用不同版本表示；这不意味着内存中的值不能通过 store 改写。 从赋值到数据流下面的伪代码展示同一个源变量的两次赋值： 12x = 1x = x + 1  改写为 SSA 后，每次使用都对应到明确的定义： 12x_1 = 1x_2 = x_1 + 1  分支合流与 φ 节点以条件更新 x 为例： 12345678int adjust(int x) &#123;    if (x &lt; 0) &#123;        x = x + 1;    &#125; else &#123;        x = x - 1;    &#125;    return x + 5;&#125;  其 SSA 伪代码如下（用于解释数据流，不是可直接编译的 LLVM IR）： 123456789101112131415x_1 = 参数 xif (x_1 &lt; 0) goto b1 else goto b2b1:    x_2 = x_1 + 1    goto b3b2:    x_3 = x_1 - ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2026/03/25/binutils-build-error/" title="Binutils编译错误"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Binutils编译错误"></a></div><div class="recent-post-info"><a class="article-title" href="/2026/03/25/binutils-build-error/" title="Binutils编译错误">Binutils编译错误</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-25T09:00:00.000Z" title="发表于 2026-03-25 17:00:00">2026-03-25</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E9%93%BE%E6%8E%A5%E5%99%A8-Binutils/">链接器/Binutils</a></span></div><div class="content">最近我在 Ubuntu 上编译 Binutils 2.42 时，gprofng 组件在链接阶段报错。最开始看上去只是一个普通的 undefined reference，但顺着错误一路排查下去，最后发现问题并不在最终链接命令本身，而在于一个中间生成文件异常，导致对应的目标文件成了“空壳对象文件”。这篇文章记录一下这次排查的完整思路，也顺便总结一套处理类似链接错误的方法。 错误现象123456/usr/bin/ld: ./.libs/libgprofng.a(DbeSession.o): in function `DbeSession::ql_parse(char const*)&#x27;:$&#123;HOME&#125;/src/gnu/binutils-2.42/gprofng/src/DbeSession.cc:3010: undefined reference to `QL::Parser::Parser(QL::Result&amp;)&#x27;/usr/bin/ld: $&#123;HOME&#125;/src/gnu/binutils-2.42/gprofng/s...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/12/17/lvm-partition-management/" title="lvm分区"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2ltZzIwMTguY25ibG9ncy5jb20vY29tbW9uLzE2NzE4NjMvMjAyMDAyLzE2NzE4NjMtMjAyMDAyMTQyMTM1MTk4NTItMTE0MjkzMTAyMC5qcGc=&amp;sign=yx:ibu5e1W3foBTAbw4JNbitIEU_Cc=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="lvm分区"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/12/17/lvm-partition-management/" title="lvm分区">lvm分区</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-12-17T09:23:00.000Z" title="发表于 2025-12-17 17:23:00">2025-12-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/linux%E7%B3%BB%E7%BB%9F/">linux系统</a></span></div><div class="content">LVM 是逻辑卷管理的缩写，是linux系统下一种灵活的磁盘分区管理机制。在物理磁盘和文件系统之间加了一个逻辑层，允许用户在不重新分区和关机的情况下，动态地调整分区大小、合并多个磁盘空间，甚至跨多磁盘创建大的存储池，极大提升了存储管理的灵活性和效率。以我的ubuntu server为例，一共分配900G，但是使用命令查看结果如下： 123456789101112131415(myenv) xx@auoroa:~/gnu/func-reorder/script/current$ df -hFilesystem                         Size  Used Avail Use% Mounted ontmpfs                              790M  1.1M  789M   1% /run/dev/mapper/ubuntu--vg-ubuntu--lv   98G   33G   60G  36% /tmpfs                              3.9G     0  3.9G   0% /dev/shm...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/11/08/mlir-type-definition/" title="mlir实践之类型定义"><img class="post-bg" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cDovL2ltZzIwMTguY25ibG9ncy5jb20vY29tbW9uLzE2NzE4NjMvMjAyMDAyLzE2NzE4NjMtMjAyMDAyMTQyMTM1MTk4NTItMTE0MjkzMTAyMC5qcGc=&amp;sign=yx:ibu5e1W3foBTAbw4JNbitIEU_Cc=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="mlir实践之类型定义"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/11/08/mlir-type-definition/" title="mlir实践之类型定义">mlir实践之类型定义</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-11-08T03:30:00.000Z" title="发表于 2025-11-08 11:30:00">2025-11-08</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8-mlir/">编译器/mlir</a></span></div><div class="content">在定义好方言之后，可以对方言中使用的类型进行定义，当然也可以使用mlir的内建类型。 内建类型mlir 提供的内建类型主要放在BuiltinTypes.td文件中，这个文件所在的路径是：mlir/include/mlir/IR/BuiltinTypes.td。文件中的部分内容如下： 1234567891011121314151617// 内建类型的基类// Base class for Builtin dialect types.class Builtin_Type&lt;string name, string typeMnemonic, list&lt;Trait&gt; traits = [],                   string baseCppClass = &quot;::mlir::Type&quot;&gt;    : TypeDef&lt;Builtin_Dialect, name, traits, baseCppClass&gt; &#123;  let mnemonic = ?;  let typeName = &quot;builtin.&quo...</div></div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/page/2/#content-inner">2</a><a class="extend next" rel="next" href="/page/2/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">firstHeart09</div><div class="author-info-description">一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/10/04/cmake-basics/" title="cmake学习"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="cmake学习"/></a><div class="content"><a class="title" href="/2026/10/04/cmake-basics/" title="cmake学习">cmake学习</a><time datetime="2026-10-04T03:47:28.328Z" title="发表于 2026-10-04 11:47:28">2026-10-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="入职前准备(一)之工具使用"/></a><div class="content"><a class="title" href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用">入职前准备(一)之工具使用</a><time datetime="2026-04-19T01:00:00.000Z" title="发表于 2026-04-19 09:00:00">2026-04-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-readelf工具使用说明"/></a><div class="content"><a class="title" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明">llvm-readelf工具使用说明</a><time datetime="2026-04-16T01:00:00.000Z" title="发表于 2026-04-16 09:00:00">2026-04-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-objdump工具使用说明"/></a><div class="content"><a class="title" href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明">llvm-objdump工具使用说明</a><time datetime="2026-04-13T01:00:00.000Z" title="发表于 2026-04-13 09:00:00">2026-04-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="x86架构下常见寄存器使用说明"/></a><div class="content"><a class="title" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明">x86架构下常见寄存器使用说明</a><time datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 17:00:00">2026-04-12</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/linux%E7%B3%BB%E7%BB%9F/"><span class="card-category-list-name">linux系统</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/x86%E6%9E%B6%E6%9E%84/"><span class="card-category-list-name">x86架构</span><span class="card-category-list-count">1</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/x86%E6%9E%B6%E6%9E%84/%E6%8C%87%E4%BB%A4%E9%9B%86/"><span class="card-category-list-name">指令集</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%A5%E8%81%8C%E5%89%8D/"><span class="card-category-list-name">入职前</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%9E%84%E5%BB%BA/"><span class="card-category-list-name">工具与构建</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/"><span class="card-category-list-name">工具说明</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8-llvm/"><span class="card-category-list-name">编译器/llvm</span><span class="card-category-list-count">4</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%BC%96%E8%AF%91%E5%99%A8-mlir/"><span class="card-category-list-name">编译器/mlir</span><span class="card-category-list-count">4</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Makefile/" style="font-size: 1.1em; color: #999">Makefile</a> <a href="/tags/clang/" style="font-size: 1.1em; color: #999">clang</a> <a href="/tags/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" style="font-size: 1.1em; color: #999">问题与解决办法</a> <a href="/tags/mlir/" style="font-size: 1.5em; color: #99a9bf">mlir</a> <a href="/tags/CMakeLists-txt/" style="font-size: 1.5em; color: #99a9bf">CMakeLists.txt</a> <a href="/tags/toy-%E7%BC%96%E8%AF%91%E5%99%A8/" style="font-size: 1.1em; color: #999">toy 编译器</a> <a href="/tags/AST/" style="font-size: 1.1em; color: #999">AST</a> <a href="/tags/Binutils/" style="font-size: 1.1em; color: #999">Binutils</a> <a href="/tags/%E8%B0%83%E8%AF%95%E5%99%A8/" style="font-size: 1.1em; color: #999">调试器</a> <a href="/tags/llvm-objdump/" style="font-size: 1.1em; color: #999">llvm-objdump</a> <a href="/tags/linux/" style="font-size: 1.1em; color: #999">linux</a> <a href="/tags/lldb/" style="font-size: 1.1em; color: #999">lldb</a> <a href="/tags/x86%E6%9E%B6%E6%9E%84/" style="font-size: 1.1em; color: #999">x86架构</a> <a href="/tags/llvm-IR/" style="font-size: 1.3em; color: #99a1ac">llvm IR</a> <a href="/tags/%E9%80%BB%E8%BE%91%E5%8D%B7%E7%AE%A1%E7%90%86/" style="font-size: 1.1em; color: #999">逻辑卷管理</a> <a href="/tags/%E5%AF%84%E5%AD%98%E5%99%A8/" style="font-size: 1.1em; color: #999">寄存器</a> <a href="/tags/ll%E6%96%87%E4%BB%B6/" style="font-size: 1.1em; color: #999">.ll文件</a> <a href="/tags/mlir%E6%96%B9%E8%A8%80%E7%B3%BB%E7%BB%9F/" style="font-size: 1.1em; color: #999">mlir方言系统</a> <a href="/tags/cmake/" style="font-size: 1.5em; color: #99a9bf">cmake</a> <a href="/tags/llvm-readelf/" style="font-size: 1.1em; color: #999">llvm-readelf</a> <a href="/tags/llvm%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B/" style="font-size: 1.1em; color: #999">llvm工具使用流程</a> <a href="/tags/llvm/" style="font-size: 1.3em; color: #99a1ac">llvm</a> <a href="/tags/%E6%B1%87%E7%BC%96%E4%BB%A3%E7%A0%81/" style="font-size: 1.1em; color: #999">汇编代码</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 1.3em; color: #99a1ac">基础知识</a> <a href="/tags/SSA/" style="font-size: 1.1em; color: #999">SSA</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/10/">
+            <span class="card-archive-list-date">
+              十月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/04/">
+            <span class="card-archive-list-date">
+              四月 2026
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              三月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/12/">
+            <span class="card-archive-list-date">
+              十二月 2025
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/11/">
+            <span class="card-archive-list-date">
+              十一月 2025
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/10/">
+            <span class="card-archive-list-date">
+              十月 2025
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">18</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-10-05T09:37:23.722Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By firstHeart09</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><script src="/"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["实践出真知","工欲善其事，必先利其器","学而不思则罔，思而不学则殆"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  fetch('https://v.api.aa1.cn/api/yiyan/index.php')
+    .then(response => response.text())
+    .then(data => {
+      const reg = /<p>(.*?)<\/p>/g
+      const result = reg.exec(data)
+      if (result && result[1]) {
+        typedJSFn.processSubtitle(result[1])
+      } else {
+        throw new Error('Failed to parse the return value of the Yiyan API')
+      }
+    })
+    .catch(err => {
+      console.error('Failed to get the Yiyan API:', err)
+      typedJSFn.processSubtitle(3)
+    })
+}
+typedJSFn.run(subtitleType)
+</script></div><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.3"></script></div></div></body></html>

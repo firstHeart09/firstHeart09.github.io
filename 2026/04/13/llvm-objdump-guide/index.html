@@ -1,0 +1,304 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>llvm-objdump工具使用说明 | 我的编译日志</title><meta name="author" content="firstHeart09"><meta name="copyright" content="firstHeart09"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在日常的工具中，我们经常需要看程序的汇编代码，但是一般情况下，程序给我们提供的只是可执行文件或者目标文件，这类文件如果想要直接打开看其内容，是不现实的。所以，我们此时需要一些工具，去将这个文件翻译成我们能够读懂的语言，这就是 llvm-objdump 的具体使用场景。 假设现在存在如下测试代码 123456789#include &lt;iostream&gt;using namespace st">
+<meta property="og:type" content="article">
+<meta property="og:title" content="llvm-objdump工具使用说明">
+<meta property="og:url" content="https://firstheart09.github.io/2026/04/13/llvm-objdump-guide/index.html">
+<meta property="og:site_name" content="我的编译日志">
+<meta property="og:description" content="在日常的工具中，我们经常需要看程序的汇编代码，但是一般情况下，程序给我们提供的只是可执行文件或者目标文件，这类文件如果想要直接打开看其内容，是不现实的。所以，我们此时需要一些工具，去将这个文件翻译成我们能够读懂的语言，这就是 llvm-objdump 的具体使用场景。 假设现在存在如下测试代码 123456789#include &lt;iostream&gt;using namespace st">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0">
+<meta property="article:published_time" content="2026-04-13T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-05T09:25:00.749Z">
+<meta property="article:author" content="firstHeart09">
+<meta property="article:tag" content="llvm-objdump">
+<meta property="article:tag" content="汇编代码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "llvm-objdump工具使用说明",
+  "url": "https://firstheart09.github.io/2026/04/13/llvm-objdump-guide/",
+  "image": "https://kkimgs.yisou.com/ims?kt=url&at=ori&key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&tv=0_0",
+  "datePublished": "2026-04-13T01:00:00.000Z",
+  "dateModified": "2026-10-05T09:25:00.749Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "firstHeart09",
+      "url": "https://firstHeart09.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://firstheart09.github.io/2026/04/13/llvm-objdump-guide/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: firstHeart09","link":"链接: ","source":"来源: 我的编译日志","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'FancyBox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'llvm-objdump工具使用说明',
+  isHighlightShrink: true,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/style.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pa25vdy1waWMuY2RuLmJjZWJvcy5jb20vOWUzZGY4ZGNkMTAwYmFhMWJiNTI0ZTI1NTUxMGI5MTJjOGZjMmUzNQ==&amp;sign=yx:MhU85g9XgUVVEpvHcOLhuHD7Uvs=&amp;tv=0_0);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">我的编译日志</span></a><a class="nav-page-title" href="/"><span class="site-name">llvm-objdump工具使用说明</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">llvm-objdump工具使用说明</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-13T01:00:00.000Z" title="发表于 2026-04-13 09:00:00">2026-04-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-05T09:25:00.749Z" title="更新于 2026-10-05 17:25:00">2026-10-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/">工具说明</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;该文章创建于&quot;,&quot;messageNext&quot;:&quot;天前，文章可能已经过时，请优先查看最新的文章.&quot;,&quot;postUpdate&quot;:&quot;2026-10-05 17:25:00&quot;}" hidden></div><p>在日常的工具中，我们经常需要看程序的汇编代码，但是一般情况下，程序给我们提供的只是可执行文件或者目标文件，这类文件如果想要直接打开看其内容，是不现实的。所以，我们此时需要一些工具，去将这个文件翻译成我们能够读懂的语言，这就是 llvm-objdump 的具体使用场景。</p>
+<p>假设现在存在如下测试代码</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> x = <span class="number">1</span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Hello world: &quot;</span> &lt;&lt; x &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>针对以上测试代码，使用<code>clang++ hello.cc</code>命令进行编译链接，生成最终的可执行文件。</p>
+<h1 id="llvm-objdump-常用命令详解"><a href="#llvm-objdump-常用命令详解" class="headerlink" title="llvm-objdump 常用命令详解"></a>llvm-objdump 常用命令详解</h1><p>这个命令可以用于查看和分析目标文件、可执行文件、库文件的工具，如<code>objdump</code>命令一样。这个命令可以用于查看以下信息：</p>
+<ul>
+<li>反汇编机器指令，查看二进制代码对应的汇编内容；</li>
+<li>查看各节区的原始内容</li>
+<li>…</li>
+</ul>
+<h2 id="反汇编相关"><a href="#反汇编相关" class="headerlink" title="反汇编相关"></a>反汇编相关</h2><h3 id="d-–disassemble-只反汇编可执行节区中的代码"><a href="#d-–disassemble-只反汇编可执行节区中的代码" class="headerlink" title="-d &#x2F; –disassemble 只反汇编可执行节区中的代码"></a>-d &#x2F; –disassemble 只反汇编可执行节区中的代码</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-objdump -d ./a.out</span><br><span class="line">00000000000027c0 &lt;main&gt;:</span><br><span class="line">    27c0: 55                           	pushq	%rbp</span><br><span class="line">    27c1: 48 89 e5                     	movq	%rsp, %rbp</span><br><span class="line">    27c4: 48 83 ec 10                  	subq	$0x10, %rsp</span><br><span class="line">    27c8: c7 45 fc 00 00 00 00         	movl	$0x0, -0x4(%rbp)</span><br><span class="line">    27cf: c7 45 f8 01 00 00 00         	movl	$0x1, -0x8(%rbp)</span><br><span class="line">    27d6: 48 8b 3d 5b 22 00 00         	movq	0x225b(%rip), %rdi      # 0x4a38 &lt;strlen+0x4a38&gt;</span><br><span class="line">    27dd: 48 8d 35 70 e4 ff ff         	leaq	-0x1b90(%rip), %rsi     # 0xc54 &lt;_IO_stdin_used+0x4&gt;</span><br><span class="line">    27e4: e8 27 00 00 00               	callq	0x2810 &lt;_ZNSt3__1lsB9sqe230000INS_11char_traitsIcEEEERNS_13basic_ostreamIcT_EES6_PKc&gt;</span><br><span class="line">    27e9: 48 89 c7                     	movq	%rax, %rdi</span><br><span class="line">    27ec: 8b 75 f8                     	movl	-0x8(%rbp), %esi</span><br><span class="line">    27ef: e8 1c 0f 00 00               	callq	0x3710 &lt;_ZNSt3__113basic_ostreamIcNS_11char_traitsIcEEElsEi@plt&gt;</span><br><span class="line">    27f4: 48 89 c7                     	movq	%rax, %rdi</span><br><span class="line">    27f7: 48 8d 35 72 00 00 00         	leaq	0x72(%rip), %rsi        # 0x2870 &lt;_ZNSt3__14endlB9sqe230000IcNS_11char_traitsIcEEEERNS_13basic_ostreamIT_T0_EES7_&gt;</span><br><span class="line">    27fe: e8 4d 00 00 00               	callq	0x2850 &lt;_ZNSt3__113basic_ostreamIcNS_11char_traitsIcEEElsB9sqe230000EPFRS3_S4_E&gt;</span><br><span class="line">    2803: 31 c0                        	xorl	%eax, %eax</span><br><span class="line">    2805: 48 83 c4 10                  	addq	$0x10, %rsp</span><br><span class="line">    2809: 5d                           	popq	%rbp</span><br><span class="line">    280a: c3                           	retq</span><br><span class="line">    280b: cc                           	int3</span><br><span class="line">    280c: cc                           	int3</span><br><span class="line">    280d: cc                           	int3</span><br><span class="line">    280e: cc                           	int3</span><br><span class="line">    280f: cc                           	int3</span><br></pre></td></tr></table></figure>
+<p>通过上述参数选项，可以看到 <code>.text sections</code> 反汇编代码。</p>
+<h3 id="D-–disassemble-all-反汇编文件中的所有节区"><a href="#D-–disassemble-all-反汇编文件中的所有节区" class="headerlink" title="-D &#x2F; –disassemble-all 反汇编文件中的所有节区"></a>-D &#x2F; –disassemble-all 反汇编文件中的所有节区</h3><p>非代码节区也会被尝试解码，输出不一定是有意义的指令。</p>
+<p>非代码节区也会被尝试解码，输出不一定是有意义的指令。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-objdump -D a.out</span><br></pre></td></tr></table></figure>
+
+<h3 id="–disassemble-symbols-只反汇编文件中-value-指定的函数，得到对应的反汇编代码"><a href="#–disassemble-symbols-只反汇编文件中-value-指定的函数，得到对应的反汇编代码" class="headerlink" title="–disassemble-symbols&#x3D;   只反汇编文件中 value 指定的函数，得到对应的反汇编代码"></a>–disassemble-symbols&#x3D;<value>   只反汇编文件中 value 指定的函数，得到对应的反汇编代码</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-objdump --disassemble-symbols=main ./a.out </span><br><span class="line"></span><br><span class="line">./a.out:        file format elf64-x86-64</span><br><span class="line"></span><br><span class="line">Disassembly of section .text:</span><br><span class="line"></span><br><span class="line">00000000000027c0 &lt;main&gt;:</span><br><span class="line">    27c0: 55                            pushq   %rbp</span><br><span class="line">    27c1: 48 89 e5                      movq    %rsp, %rbp</span><br><span class="line">    27c4: 48 83 ec 10                   subq    $0x10, %rsp</span><br><span class="line">    27c8: c7 45 fc 00 00 00 00          movl    $0x0, -0x4(%rbp)</span><br><span class="line">    27cf: c7 45 f8 01 00 00 00          movl    $0x1, -0x8(%rbp)</span><br><span class="line">    27d6: 48 8b 3d 5b 22 00 00          movq    0x225b(%rip), %rdi      # 0x4a38 &lt;strlen+0x4a38&gt;</span><br><span class="line">    27dd: 48 8d 35 70 e4 ff ff          leaq    -0x1b90(%rip), %rsi     # 0xc54 &lt;_IO_stdin_used+0x4&gt;</span><br><span class="line">    27e4: e8 27 00 00 00                callq   0x2810 &lt;_ZNSt3__1lsB9sqe230000INS_11char_traitsIcEEEERNS_13basic_ostreamIcT_EES6_PKc&gt;</span><br><span class="line">    27e9: 48 89 c7                      movq    %rax, %rdi</span><br><span class="line">    27ec: 8b 75 f8                      movl    -0x8(%rbp), %esi</span><br><span class="line">    27ef: e8 1c 0f 00 00                callq   0x3710 &lt;_ZNSt3__113basic_ostreamIcNS_11char_traitsIcEEElsEi@plt&gt;</span><br><span class="line">    27f4: 48 89 c7                      movq    %rax, %rdi</span><br><span class="line">    27f7: 48 8d 35 72 00 00 00          leaq    0x72(%rip), %rsi        # 0x2870 &lt;_ZNSt3__14endlB9sqe230000IcNS_11char_traitsIcEEEERNS_13basic_ostreamIT_T0_EES7_&gt;</span><br><span class="line">    27fe: e8 4d 00 00 00                callq   0x2850 &lt;_ZNSt3__113basic_ostreamIcNS_11char_traitsIcEEElsB9sqe230000EPFRS3_S4_E&gt;</span><br><span class="line">    2803: 31 c0                         xorl    %eax, %eax</span><br><span class="line">    2805: 48 83 c4 10                   addq    $0x10, %rsp</span><br><span class="line">    2809: 5d                            popq    %rbp</span><br><span class="line">    280a: c3                            retq</span><br><span class="line">    280b: cc                            int3</span><br><span class="line">    280c: cc                            int3</span><br><span class="line">    280d: cc                            int3</span><br><span class="line">    280e: cc                            int3</span><br><span class="line">    280f: cc                            int3</span><br></pre></td></tr></table></figure>
+
+<p>在实际使用中，可以使用<code>-S/--source</code>参数将源码与汇编代码交叉显示；使用<code>--line-numbers/-l</code>参数可以在反汇编的时候显示源码行号信息。</p>
+<h2 id="显示节区内容"><a href="#显示节区内容" class="headerlink" title="显示节区内容"></a>显示节区内容</h2><p>在这部分，可以通过参数显示文件的节区内容，以十六进制的方式显示</p>
+<h3 id="s-–full-contents-显示节区的完整内容"><a href="#s-–full-contents-显示节区的完整内容" class="headerlink" title="-s &#x2F; –full-contents  显示节区的完整内容"></a>-s &#x2F; –full-contents  显示节区的完整内容</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-objdump -s ./a.out | head</span><br><span class="line"></span><br><span class="line">./a.out:        file format elf64-x86-64</span><br><span class="line">Contents of section .interp:</span><br><span class="line"> 02a8 2f6c6962 36342f6c 642d6c69 6e75782d  /lib64/ld-linux-</span><br><span class="line"> 02b8 7838362d 36342e73 6f2e3200           x86-64.so.2.</span><br><span class="line">Contents of section .note.ABI-tag:</span><br><span class="line"> 02c4 04000000 10000000 01000000 474e5500  ............GNU.</span><br><span class="line"> 02d4 00000000 03000000 02000000 00000000  ................</span><br><span class="line">Contents of section .dynsym:</span><br><span class="line"> 02e8 00000000 00000000 00000000 00000000  ................</span><br></pre></td></tr></table></figure>
+
+<h3 id="–section-j-只操作指定的节区内容即只关注某个节区"><a href="#–section-j-只操作指定的节区内容即只关注某个节区" class="headerlink" title="–section&#x3D; &#x2F; -j 只操作指定的节区内容即只关注某个节区"></a>–section&#x3D;<value> &#x2F; -j 只操作指定的节区内容即只关注某个节区</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-objdump -s -j .text a.out</span><br><span class="line"></span><br><span class="line">a.out:  file format elf64-x86-64</span><br><span class="line">Contents of section .text:</span><br><span class="line"> 2700 f30f1efa 31ed4989 d15e4889 e24883e4  ....1.I..^H..H..</span><br><span class="line"> 2710 f0505445 31c031c9 488d3da1 000000ff  .PTE1.1.H.=.....</span><br><span class="line"> 2720 15eb2200 00f4cccc cccccccc cccccccc  ..&quot;.............</span><br><span class="line"> 2730 554889e5 f605dd33 00000174 02eb27c6  UH.....3...t..&#x27;.</span><br><span class="line"> 2740 05d23300 0001488b 05d32200 004883f8  ..3...H...&quot;..H..</span><br><span class="line"> 2750 00741348 8d3d9ee7 ffff488d 35bf3300  .t.H.=....H.5.3.</span><br><span class="line"> 2760 00e87a0f 00005dc3 cccccccc cccccccc  ..z...].........</span><br><span class="line"> 2770 554889e5 f605e533 00000174 02eb39c6  UH.....3...t..9.</span><br><span class="line"> 2780 05da3300 0001488b 059b2200 004883f8  ..3...H...&quot;..H..</span><br><span class="line"> 2790 00740c48 8b3db632 0000e851 0f000048  .t.H.=.2...Q...H</span><br><span class="line"> 27a0 8b058a22 00004883 f800740c 488d3d45  ...&quot;..H...t.H.=E</span><br><span class="line"> 27b0 e7ffffe8 480f0000 5dc3cccc cccccccc  ....H...].......</span><br><span class="line"> 27c0 554889e5 4883ec10 c745fc00 000000c7  UH..H....E......</span><br><span class="line"> 27d0 45f80100 0000488b 3d5b2200 00488d35  E.....H.=[&quot;..H.5</span><br><span class="line"> ...</span><br></pre></td></tr></table></figure>
+
+<h2 id="调试信息相关"><a href="#调试信息相关" class="headerlink" title="调试信息相关"></a>调试信息相关</h2><h4 id="dwarf"><a href="#dwarf" class="headerlink" title="--dwarf=&lt;value&gt;"></a><code>--dwarf=&lt;value&gt;</code></h4><p>转储指定的 DWARF 调试节区，目前帮助信息中显示支持 <code>frames</code>。</p>
+<h4 id="unwind-info-u"><a href="#unwind-info-u" class="headerlink" title="--unwind-info &#x2F; -u"></a><code>--unwind-info</code> &#x2F; <code>-u</code></h4><p>显示栈展开信息（unwind information）。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-objdump -u a.out</span><br></pre></td></tr></table></figure>
+
+<p>这些选项常用于异常处理、调用栈恢复、调试器支持和底层 ABI 分析。</p>
+<h1 id="main函数反汇编"><a href="#main函数反汇编" class="headerlink" title="main函数反汇编"></a>main函数反汇编</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-objdump --disassemble-symbols=main --demangle a.out</span><br><span class="line"></span><br><span class="line">a.out:  file format elf64-x86-64</span><br><span class="line"></span><br><span class="line">Disassembly of section .text:</span><br><span class="line"></span><br><span class="line">00000000000027c0 &lt;main&gt;:</span><br><span class="line">    27c0: 55                            pushq   %rbp</span><br><span class="line">    27c1: 48 89 e5                      movq    %rsp, %rbp</span><br><span class="line">    27c4: 48 83 ec 10                   subq    $0x10, %rsp</span><br><span class="line">    27c8: c7 45 fc 00 00 00 00          movl    $0x0, -0x4(%rbp)</span><br><span class="line">    27cf: c7 45 f8 01 00 00 00          movl    $0x1, -0x8(%rbp)</span><br><span class="line">    27d6: 48 8b 3d 5b 22 00 00          movq    0x225b(%rip), %rdi      # 0x4a38 &lt;strlen+0x4a38&gt;</span><br><span class="line">    27dd: 48 8d 35 70 e4 ff ff          leaq    -0x1b90(%rip), %rsi     # 0xc54 &lt;_IO_stdin_used+0x4&gt;</span><br><span class="line">    27e4: e8 27 00 00 00                callq   0x2810 &lt;std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; std::__1::operator&lt;&lt;[abi:sqe230000]&lt;std::__1::char_traits&lt;char&gt;&gt;(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;, char const*)&gt;</span><br><span class="line">    27e9: 48 89 c7                      movq    %rax, %rdi</span><br><span class="line">    27ec: 8b 75 f8                      movl    -0x8(%rbp), %esi</span><br><span class="line">    27ef: e8 1c 0f 00 00                callq   0x3710 &lt;_ZNSt3__113basic_ostreamIcNS_11char_traitsIcEEElsEi@plt&gt;</span><br><span class="line">    27f4: 48 89 c7                      movq    %rax, %rdi</span><br><span class="line">    27f7: 48 8d 35 72 00 00 00          leaq    0x72(%rip), %rsi        # 0x2870 &lt;std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; std::__1::endl[abi:sqe230000]&lt;char, std::__1::char_traits&lt;char&gt;&gt;(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;)&gt;</span><br><span class="line">    27fe: e8 4d 00 00 00                callq   0x2850 &lt;std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;::operator&lt;&lt;[abi:sqe230000](std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp; (*)(std::__1::basic_ostream&lt;char, std::__1::char_traits&lt;char&gt;&gt;&amp;))&gt;</span><br><span class="line">    2803: 31 c0                         xorl    %eax, %eax</span><br><span class="line">    2805: 48 83 c4 10                   addq    $0x10, %rsp</span><br><span class="line">    2809: 5d                            popq    %rbp</span><br><span class="line">    280a: c3                            retq</span><br><span class="line">    280b: cc                            int3</span><br><span class="line">    280c: cc                            int3</span><br><span class="line">    280d: cc                            int3</span><br><span class="line">    280e: cc                            int3</span><br><span class="line">    280f: cc                            int3</span><br></pre></td></tr></table></figure>
+<p>可以看到，在汇编代码的一开始，首先将栈的信息保存(建立栈帧)，这部分主要是为了后续退出这个函数的时候，好恢复原有的信息。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">27c0: 55                            pushq   %rbp          # 保存调用者的基址寄存器 rbp</span><br><span class="line">27c1: 48 89 e5                      movq    %rsp, %rbp    # 让当前函数的 rbp 指向当前栈帧基址</span><br><span class="line">27c4: 48 83 ec 10                   subq    $0x10, %rsp   # 在栈上分配 16 字节局部变量空间</span><br></pre></td></tr></table></figure>
+<p>然后进行的是局部变量初始化</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">27c8: c7 45 fc 00 00 00 00          movl    $0x0, -0x4(%rbp)  # 这个应该是main函数的返回值的临时变量的初始化</span><br><span class="line">27cf: c7 45 f8 01 00 00 00          movl    $0x1, -0x8(%rbp)  # 这个是测试代码中 int x = 1</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="链接前后的函数调用"><a href="#链接前后的函数调用" class="headerlink" title="链接前后的函数调用"></a>链接前后的函数调用</h1><p>入职准备篇使用的 <code>test.cc</code> 包含 <code>add</code> 和 <code>main</code> 两个函数。下面摘录同一次实验中 <code>main</code> 调用 <code>add</code> 的指令，其他节区输出省略：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># llvm-objdump -dr test.o</span><br><span class="line">39: e8 00 00 00 00       callq 0x3e &lt;main+0x1e&gt;</span><br><span class="line">    000000000000003a: R_X86_64_PLT32 _Z3addii-0x4</span><br><span class="line"></span><br><span class="line"># llvm-objdump -dr test.out</span><br><span class="line">1779: e8 c2 ff ff ff      callq 0x1740 &lt;_Z3addii&gt;</span><br></pre></td></tr></table></figure>
+
+<p>目标文件中的四字节位移尚未填写，所以反汇编暂时显示下一条指令地址 <code>0x3e</code>；这不是最终的调用目标。重定位记录要求链接器从 <code>0x3a</code> 开始写入位移。</p>
+<p>本例链接后直接调用 <code>add</code>，目标地址是 <code>0x1740</code>，下一条指令地址是 <code>0x177e</code>，因此位移为 <code>0x1740 - 0x177e = -0x3e</code>。对应的 32 位补码为 <code>0xffffffc2</code>，小端编码就是 <code>c2 ff ff ff</code>。如果调用经过 PLT，目标则需要按 PLT 入口计算，不能一律当作函数本体地址。</p>
+<p>完整编译实验见 <a href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用">入职前准备：工具使用</a>。</p>
+<p>参数参考：<a target="_blank" rel="noopener" href="https://llvm.org/docs/CommandGuide/llvm-objdump.html">LLVM llvm-objdump 文档</a>。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://firstHeart09.github.io">firstHeart09</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://firstheart09.github.io/2026/04/13/llvm-objdump-guide/">https://firstheart09.github.io/2026/04/13/llvm-objdump-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://firstHeart09.github.io" target="_blank">我的编译日志</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/llvm-objdump/">llvm-objdump</a><a class="post-meta__tags" href="/tags/%E6%B1%87%E7%BC%96%E4%BB%A3%E7%A0%81/">汇编代码</a></div><div class="post-share"><div class="social-share" data-image="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">llvm-readelf工具使用说明</div></div><div class="info-2"><div class="info-item-1">在实际应用中，我们经常会查看可执行文件（目标文件）的文件头信息、段表、节区表、符号表、重定位表、动态链接信息以及不同平台特有的信息。 假设存在以下测试程序： 123456789#include &lt;iostream&gt;using namespace std;int main()&#123;    int x = 1;    cout &lt;&lt; &quot;Hello world: &quot; &lt;&lt; x &lt;&lt; endl;    return 0;&#125;  查看 ELF 文件头信息–file-header &#x2F; -h  显示文件的文件头信息123456789101112131415161718192021(llvm-dev) dushuai@auoroa:~/projects/llvm/study$ llvm-readelf -h ./a.out ELF Header:  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00  Class:               ...</div></div></div></a><a class="pagination-related" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明"><img class="cover" src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">x86架构下常见寄存器使用说明</div></div><div class="info-2"><div class="info-item-1">x86-64 架构下的寄存器使用分析从调试与错误定位的角度，总结 x86-64 架构下常见寄存器的作用、函数调用中的寄存器使用方式，以及在 LLDB&#x2F;GDB 中如何结合寄存器信息分析程序崩溃问题。  1. 什么是寄存器寄存器是 CPU 内部的一组高速存储单元，用于暂时保存：  运算数据 内存地址 函数参数 函数返回值 栈位置 当前执行位置  与内存相比，寄存器访问速度更快，因此 CPU 在执行指令时，大量操作都会围绕寄存器展开。 例如下面这两条指令： 12movq   -0x10(%rbp), %raxmovl   $0x2a, (%rax)  表示先从栈帧中读取一个地址到寄存器 rax，再向 rax 指向的内存地址写入整数 42。  2. x86 与 x86-64 的区别通常：  x86 表示 32 位架构 x86-64（或 amd64）表示 64 位架构  两者寄存器名称类似，只是位宽不同。例如：  32 位：eax 64 位：rax  在 x86-64 下，常见寄存器有：  rax rbx rcx rdx rsi rdi rbp rsp rip r8 ~ r15 ...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81ODg2NC8zNTMyNg=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/./img/cat01.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">firstHeart09</div><div class="author-info-description">一本关于计算机学习的公开日志。主角是编译技术和LLVM，配角是算法与各类编程知识。欢迎你来看看。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/firstHeart09" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#llvm-objdump-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">llvm-objdump 常用命令详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E6%B1%87%E7%BC%96%E7%9B%B8%E5%85%B3"><span class="toc-number">1.1.</span> <span class="toc-text">反汇编相关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#d-%E2%80%93disassemble-%E5%8F%AA%E5%8F%8D%E6%B1%87%E7%BC%96%E5%8F%AF%E6%89%A7%E8%A1%8C%E8%8A%82%E5%8C%BA%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.1.</span> <span class="toc-text">-d &#x2F; –disassemble 只反汇编可执行节区中的代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#D-%E2%80%93disassemble-all-%E5%8F%8D%E6%B1%87%E7%BC%96%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84%E6%89%80%E6%9C%89%E8%8A%82%E5%8C%BA"><span class="toc-number">1.1.2.</span> <span class="toc-text">-D &#x2F; –disassemble-all 反汇编文件中的所有节区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%80%93disassemble-symbols-%E5%8F%AA%E5%8F%8D%E6%B1%87%E7%BC%96%E6%96%87%E4%BB%B6%E4%B8%AD-value-%E6%8C%87%E5%AE%9A%E7%9A%84%E5%87%BD%E6%95%B0%EF%BC%8C%E5%BE%97%E5%88%B0%E5%AF%B9%E5%BA%94%E7%9A%84%E5%8F%8D%E6%B1%87%E7%BC%96%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.3.</span> <span class="toc-text">–disassemble-symbols&#x3D;   只反汇编文件中 value 指定的函数，得到对应的反汇编代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%BE%E7%A4%BA%E8%8A%82%E5%8C%BA%E5%86%85%E5%AE%B9"><span class="toc-number">1.2.</span> <span class="toc-text">显示节区内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#s-%E2%80%93full-contents-%E6%98%BE%E7%A4%BA%E8%8A%82%E5%8C%BA%E7%9A%84%E5%AE%8C%E6%95%B4%E5%86%85%E5%AE%B9"><span class="toc-number">1.2.1.</span> <span class="toc-text">-s &#x2F; –full-contents  显示节区的完整内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%80%93section-j-%E5%8F%AA%E6%93%8D%E4%BD%9C%E6%8C%87%E5%AE%9A%E7%9A%84%E8%8A%82%E5%8C%BA%E5%86%85%E5%AE%B9%E5%8D%B3%E5%8F%AA%E5%85%B3%E6%B3%A8%E6%9F%90%E4%B8%AA%E8%8A%82%E5%8C%BA"><span class="toc-number">1.2.2.</span> <span class="toc-text">–section&#x3D; &#x2F; -j 只操作指定的节区内容即只关注某个节区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E4%BF%A1%E6%81%AF%E7%9B%B8%E5%85%B3"><span class="toc-number">1.3.</span> <span class="toc-text">调试信息相关</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#dwarf"><span class="toc-number">1.3.1.</span> <span class="toc-text">--dwarf&#x3D;&lt;value&gt;</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#unwind-info-u"><span class="toc-number">1.3.2.</span> <span class="toc-text">--unwind-info &#x2F; -u</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#main%E5%87%BD%E6%95%B0%E5%8F%8D%E6%B1%87%E7%BC%96"><span class="toc-number">2.</span> <span class="toc-text">main函数反汇编</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%93%BE%E6%8E%A5%E5%89%8D%E5%90%8E%E7%9A%84%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">链接前后的函数调用</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/10/04/cmake-basics/" title="cmake学习"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="cmake学习"/></a><div class="content"><a class="title" href="/2026/10/04/cmake-basics/" title="cmake学习">cmake学习</a><time datetime="2026-10-04T03:47:28.328Z" title="发表于 2026-10-04 11:47:28">2026-10-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="入职前准备(一)之工具使用"/></a><div class="content"><a class="title" href="/2026/04/19/onboarding-preparation-part-1/" title="入职前准备(一)之工具使用">入职前准备(一)之工具使用</a><time datetime="2026-04-19T01:00:00.000Z" title="发表于 2026-04-19 09:00:00">2026-04-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-readelf工具使用说明"/></a><div class="content"><a class="title" href="/2026/04/16/llvm-readelf-guide/" title="llvm-readelf工具使用说明">llvm-readelf工具使用说明</a><time datetime="2026-04-16T01:00:00.000Z" title="发表于 2026-04-16 09:00:00">2026-04-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="llvm-objdump工具使用说明"/></a><div class="content"><a class="title" href="/2026/04/13/llvm-objdump-guide/" title="llvm-objdump工具使用说明">llvm-objdump工具使用说明</a><time datetime="2026-04-13T01:00:00.000Z" title="发表于 2026-04-13 09:00:00">2026-04-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明"><img src="https://kkimgs.yisou.com/ims?kt=url&amp;at=ori&amp;key=aHR0cHM6Ly9pbWcyMDE4LmNuYmxvZ3MuY29tL2Jsb2cvNzYwODU5LzIwMTkxMi83NjA4NTktMjAxOTEyMjExNjA3MjQwMTMtOTAxNTMyODgzLmpwZw==&amp;sign=yx:_u83fSfBtO2m1mmdNgTX-HKmY4c=&amp;tv=0_0" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="x86架构下常见寄存器使用说明"/></a><div class="content"><a class="title" href="/2026/04/12/x86-64-register-guide/" title="x86架构下常见寄存器使用说明">x86架构下常见寄存器使用说明</a><time datetime="2026-04-12T09:00:00.000Z" title="发表于 2026-04-12 17:00:00">2026-04-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By firstHeart09</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><script src="/"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:description\"]","link[rel=\"canonical\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.3"></script></div></div></body></html>
